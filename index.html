@@ -443,6 +443,15 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
   <div class="mb" id="m-ficha-b"></div>
 </div></div>
 
+<!-- Modal Ficha Inscrição -->
+<div class="mw" id="m-ins"><div class="modal">
+  <div class="mh">
+    <h3 id="m-ins-title">Inscrição</h3>
+    <button class="mc" onclick="closeM('m-ins')">✕</button>
+  </div>
+  <div class="mb" id="m-ins-body"></div>
+</div></div>
+
 <div id="cfw"><div class="cfb">
   <h3 id="cf-t">Confirmar</h3><p id="cf-m">Tem certeza?</p>
   <div class="cfr"><button class="btn btn-gh" onclick="closeCf()">Cancelar</button><button class="btn btn-r" id="cf-ok">Confirmar</button></div>
@@ -1100,63 +1109,211 @@ async function toggleFormulario(estaAberto) {
 function rInscricoes(ab='pendentes'){
   const pend=D.ins.filter(i=>i.status==='pendente');
   const conf=D.ins.filter(i=>i.status==='confirmado');
-  const todos=D.ins;
+  const todos=[...D.ins].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  const lista=ab==='pendentes'?pend:ab==='confirmadas'?conf:todos;
+
   document.getElementById('pg').innerHTML=`
     <div class="sg sg-4" style="margin-bottom:14px">
-      <div class="sc"><div class="v" style="font-size:1.4rem;color:var(--warn)">${pend.length}</div><div class="l">Pendentes</div></div>
-      <div class="sc"><div class="v" style="font-size:1.4rem;color:var(--ok)">${conf.length}</div><div class="l">Confirmadas</div></div>
-      <div class="sc"><div class="v" style="font-size:1.4rem">${todos.length}</div><div class="l">Total</div></div>
-      <div class="sc"><div class="v" style="font-size:1.4rem;color:var(--info)">${D.ins.filter(i=>!i.importado).length}</div><div class="l">Não importadas</div></div>
+      <div class="sc"><div class="v" style="font-size:1.5rem;color:var(--warn)">${pend.length}</div><div class="l">Pendentes</div></div>
+      <div class="sc"><div class="v" style="font-size:1.5rem;color:var(--ok)">${conf.length}</div><div class="l">Pagas</div></div>
+      <div class="sc"><div class="v" style="font-size:1.5rem">${todos.length}</div><div class="l">Total</div></div>
+      <div class="sc"><div class="v" style="font-size:1.5rem;color:var(--info)">${D.ins.filter(i=>!i.importado).length}</div><div class="l">Não importadas</div></div>
     </div>
     <div class="tab-bar">
-      <button class="tb2 ${ab==='pendentes'?'on':''}" onclick="rInscricoes('pendentes')">Pendentes</button>
-      <button class="tb2 ${ab==='confirmadas'?'on':''}" onclick="rInscricoes('confirmadas')">Confirmadas</button>
+      <button class="tb2 ${ab==='pendentes'?'on':''}" onclick="rInscricoes('pendentes')">Pendentes (${pend.length})</button>
+      <button class="tb2 ${ab==='confirmadas'?'on':''}" onclick="rInscricoes('confirmadas')">Pagas (${conf.length})</button>
       <button class="tb2 ${ab==='todas'?'on':''}" onclick="rInscricoes('todas')">Todas</button>
     </div>
-    ${insCards(ab==='pendentes'?pend:ab==='confirmadas'?conf:todos)}
+    ${lista.length===0
+      ? '<div class="empty"><div class="e">📝</div><p>Nenhuma inscrição aqui.</p></div>'
+      : lista.map(i=>insCard(i)).join('')
+    }
   `;
 }
 
-function insCards(lista){
-  if(lista.length===0)return'<div class="empty"><div class="e">📝</div><p>Nenhuma inscrição nesta categoria.</p></div>';
-  return lista.map(i=>`
-    <div class="card" style="margin-bottom:8px">
-      <div class="cb" style="padding:12px 14px">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
-          <div style="flex:1;min-width:0">
-            <div style="font-weight:600;font-size:.88rem">${i.nome} ${i.primeira_vez==='sim'?'<span class="badge by" style="font-size:.62rem">1ª vez</span>':''}</div>
-            <div style="font-size:.72rem;color:var(--t3);margin-top:2px">${i.responsavel} · ${i.telefone}</div>
-            <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">
-              <span class="badge ${i.status==='pendente'?'by':i.status==='confirmado'?'bg':'br'}">${i.status==='pendente'?'Pendente':i.status==='confirmado'?'Confirmada':'Cancelada'}</span>
-              <span class="badge bp">${i.passaporte==='premium'?'Premium':'Passaporte'}</span>
-              ${i.tem_alergia==='sim'?'<span class="badge br">Alergia</span>':''}
-              ${i.importado?'<span class="badge bk">Importada</span>':''}
-            </div>
+function insCard(i){
+  const statusCor = i.status==='pendente'?'var(--warn)':i.status==='confirmado'?'var(--ok)':'var(--err)';
+  const statusLbl = i.status==='pendente'?'Aguardando pagamento':i.status==='confirmado'?'Pagamento confirmado':'Cancelada';
+  const passLbl   = i.passaporte==='premium'?'Premium — R$ 47':'Passaporte — R$ 27';
+  const dataIns   = new Date(i.created_at).toLocaleString('pt-BR');
+
+  return `<div class="card" style="margin-bottom:9px;cursor:pointer" onclick="abrirFichaIns('${i.id}')">
+    <div class="cb" style="padding:13px 15px">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <!-- Avatar -->
+        <div style="width:38px;height:38px;border-radius:10px;background:var(--p);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.95rem;flex-shrink:0">
+          ${(i.nome||'?')[0].toUpperCase()}
+        </div>
+        <!-- Info -->
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+            ${i.nome}
+            ${i.primeira_vez==='sim'?'<span class="badge by" style="font-size:.6rem;margin-left:4px">1ª vez</span>':''}
           </div>
-          <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
-            ${i.status==='pendente'?`<button class="btn btn-ok btn-sm" onclick="confirmarIns('${i.id}')">Confirmar</button>`:''}
-            ${!i.importado?`<button class="btn btn-p btn-sm" onclick="importarIns('${i.id}')">→ Importar</button>`:''}
-            <a href="https://wa.me/55${(i.telefone||'').replace(/\D/g,'')}" class="btn btn-gh btn-sm" target="_blank">WhatsApp</a>
-            <button class="btn btn-r btn-sm" onclick="delIns('${i.id}')">Excluir</button>
+          <div style="font-size:.74rem;color:var(--t2);margin-top:2px">${i.responsavel} · ${i.telefone}</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:5px">
+            <span style="font-size:.7rem;font-weight:700;color:${statusCor}">${statusLbl}</span>
+            <span style="font-size:.7rem;color:var(--t3)">·</span>
+            <span style="font-size:.7rem;color:var(--t3)">${passLbl}</span>
           </div>
         </div>
-        ${i.alergias?`<div style="margin-top:8px;padding:7px 10px;background:#fee2e2;border-radius:6px;font-size:.75rem;color:#b91c1c"><strong>Alergia:</strong> ${i.alergias}</div>`:''}
+        <!-- Indicadores -->
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+          ${i.tem_alergia==='sim'?'<span class="badge br" style="font-size:.62rem">⚠️ Alergia</span>':''}
+          ${i.importado?'<span class="badge bk" style="font-size:.62rem">✓ Importada</span>':''}
+          <span style="font-size:.65rem;color:var(--t3)">${dataIns}</span>
+        </div>
       </div>
     </div>
-  `).join('');
+  </div>`;
+}
+
+// ── FICHA COMPLETA DA INSCRIÇÃO ───────────────
+function abrirFichaIns(id){
+  const i=D.ins.find(x=>x.id===id);
+  if(!i)return;
+
+  const sim='<span class="badge bg">Sim</span>';
+  const nao='<span class="badge bk">Não</span>';
+  const statusCor=i.status==='pendente'?'var(--warn)':i.status==='confirmado'?'var(--ok)':'var(--err)';
+  const statusLbl=i.status==='pendente'?'Aguardando pagamento':i.status==='confirmado'?'✓ Pagamento confirmado':'Cancelada';
+
+  document.getElementById('m-ins-title').textContent=i.nome;
+  document.getElementById('m-ins-body').innerHTML=`
+
+    <!-- Status + ações -->
+    <div style="background:var(--bg);border-radius:var(--rs);padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <div>
+        <div style="font-size:.7rem;color:var(--t3);margin-bottom:2px">Status</div>
+        <div style="font-weight:700;font-size:.88rem;color:${statusCor}">${statusLbl}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${i.status==='pendente'
+          ?`<button class="btn btn-ok btn-sm" onclick="confirmarIns('${i.id}');closeM('m-ins')">✓ Confirmar pagamento</button>`
+          :`<button class="btn btn-gh btn-sm" onclick="cancelarIns('${i.id}')">Cancelar</button>`
+        }
+        <a href="https://wa.me/55${(i.telefone||'').replace(/\D/g,'')}" class="btn btn-gh btn-sm" target="_blank" onclick="event.stopPropagation()">📲 WhatsApp</a>
+      </div>
+    </div>
+
+    <!-- Passaporte -->
+    <div style="background:${i.passaporte==='premium'?'#fffbeb':'#f0edf9'};border:1.5px solid ${i.passaporte==='premium'?'var(--g)':'var(--p)'};border-radius:var(--rs);padding:11px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:.7rem;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.4px">Passaporte escolhido</div>
+        <div style="font-weight:700;font-size:.92rem;margin-top:2px;color:${i.passaporte==='premium'?'#92400e':'var(--p)'}">${i.passaporte==='premium'?'Passaporte Premium':'Passaporte EBF'}</div>
+      </div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:${i.passaporte==='premium'?'#92400e':'var(--p)'}">R$ ${i.passaporte==='premium'?'47':'27'}</div>
+    </div>
+
+    <!-- Dados da criança -->
+    <div style="font-size:.68rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Dados da Criança</div>
+    <div class="card" style="margin-bottom:13px"><div class="cb">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:.83rem">
+        <div><div style="color:var(--t3);font-size:.7rem;margin-bottom:2px">Nome</div><strong>${i.nome||'—'}</strong></div>
+        <div><div style="color:var(--t3);font-size:.7rem;margin-bottom:2px">Nascimento</div><strong>${i.data_nasc?new Date(i.data_nasc+'T12:00:00').toLocaleDateString('pt-BR'):'—'}</strong></div>
+        <div><div style="color:var(--t3);font-size:.7rem;margin-bottom:2px">Idade</div><strong>${i.idade?i.idade+' anos':'—'}</strong></div>
+        <div><div style="color:var(--t3);font-size:.7rem;margin-bottom:2px">Sexo</div><strong>${i.sexo==='M'?'Masculino':i.sexo==='F'?'Feminino':'Não informado'}</strong></div>
+        <div><div style="color:var(--t3);font-size:.7rem;margin-bottom:2px">1ª vez na EBF?</div><strong>${i.primeira_vez==='sim'?'Sim ⭐':'Não'}</strong></div>
+      </div>
+    </div></div>
+
+    <!-- Dados do responsável -->
+    <div style="font-size:.68rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Responsável</div>
+    <div class="card" style="margin-bottom:13px"><div class="cb">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:.83rem">
+        <div><div style="color:var(--t3);font-size:.7rem;margin-bottom:2px">Nome</div><strong>${i.responsavel||'—'}</strong></div>
+        <div><div style="color:var(--t3);font-size:.7rem;margin-bottom:2px">Parentesco</div><strong>${i.parentesco||'—'}</strong></div>
+        <div><div style="color:var(--t3);font-size:.7rem;margin-bottom:2px">WhatsApp</div>
+          <strong>${i.telefone?`<a href="https://wa.me/55${i.telefone.replace(/\D/g,'')}" style="color:var(--p)">${i.telefone}</a>`:'—'}</strong>
+        </div>
+        <div><div style="color:var(--t3);font-size:.7rem;margin-bottom:2px">E-mail</div><strong>${i.email||'—'}</strong></div>
+        <div style="grid-column:1/-1"><div style="color:var(--t3);font-size:.7rem;margin-bottom:2px">Endereço</div>
+          <strong>${[i.endereco,i.bairro].filter(Boolean).join(', ')||'—'}</strong>
+        </div>
+      </div>
+    </div></div>
+
+    <!-- Saúde -->
+    <div style="font-size:.68rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Saúde</div>
+    <div class="card" style="margin-bottom:13px"><div class="cb">
+      <div style="display:flex;flex-direction:column;gap:9px;font-size:.83rem">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+          <span>Tem alergia alimentar?</span>
+          ${i.tem_alergia==='sim'?sim:nao}
+        </div>
+        ${i.alergias?`<div style="background:#fee2e2;border-radius:6px;padding:8px 10px;font-size:.8rem;color:#b91c1c"><strong>Alergias:</strong> ${i.alergias}</div>`:''}
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <span>Tem restrição médica?</span>
+          ${i.tem_restricao==='sim'?sim:nao}
+        </div>
+        ${i.restricoes?`<div style="background:#fef9c3;border-radius:6px;padding:8px 10px;font-size:.8rem;color:#854d0e"><strong>Restrições:</strong> ${i.restricoes}</div>`:''}
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <span>Usa medicamento?</span>
+          ${i.medicamentos?sim:nao}
+        </div>
+        ${i.medicamentos?`<div style="background:#dbeafe;border-radius:6px;padding:8px 10px;font-size:.8rem;color:#1d4ed8"><strong>Medicamentos:</strong> ${i.medicamentos}</div>`:''}
+      </div>
+    </div></div>
+
+    <!-- Autorizações -->
+    <div style="font-size:.68rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Autorizações</div>
+    <div class="card" style="margin-bottom:13px"><div class="cb">
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:.83rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <span>Uso de fotos/vídeos</span>${i.autoriza_foto==='sim'?sim:nao}
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <span>Decisões médicas de emergência</span>${i.autoriza_emergencia==='sim'?sim:nao}
+        </div>
+        ${i.contato_emergencia||i.tel_emergencia?`
+        <div style="border-top:1px solid var(--bd);padding-top:8px">
+          <div style="color:var(--t3);font-size:.7rem;margin-bottom:3px">Contato de emergência</div>
+          <strong>${i.contato_emergencia||'—'}</strong> ${i.tel_emergencia?`· <a href="tel:${i.tel_emergencia}" style="color:var(--p)">${i.tel_emergencia}</a>`:''}
+        </div>`:''}
+      </div>
+    </div></div>
+
+    ${i.observacoes?`
+    <div style="font-size:.68rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Observações</div>
+    <div class="card" style="margin-bottom:13px"><div class="cb"><p style="font-size:.83rem;color:var(--t2)">${i.observacoes}</p></div></div>`:''}
+
+    <!-- Ações finais -->
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+      ${!i.importado?`<button class="btn btn-p btn-full" onclick="importarIns('${i.id}');closeM('m-ins')">→ Importar para Crianças</button>`
+        :'<div class="badge bg" style="text-align:center;padding:8px;border-radius:var(--rs);font-size:.8rem">✓ Já importada para o cadastro de crianças</div>'}
+      <button class="btn btn-r btn-sm btn-full" onclick="delIns('${i.id}');closeM('m-ins')">Excluir inscrição</button>
+    </div>
+  `;
+
+  openM('m-ins');
 }
 
 async function confirmarIns(id){
-  try{await dbU('inscricoes_ebf',id,{status:'confirmado'});await rl('ins');rInscricoes('pendentes');toast('Inscrição confirmada!','ok');}
-  catch(e){toast('Erro: '+e.message,'err');}
+  try{
+    await dbU('inscricoes_ebf',id,{status:'confirmado'});
+    await rl('ins');
+    rInscricoes('pendentes');
+    toast('Pagamento confirmado!','ok');
+  }catch(e){toast('Erro: '+e.message,'err');}
+}
+
+async function cancelarIns(id){
+  confirm2('Cancelar inscrição','Marcar esta inscrição como cancelada?',async()=>{
+    try{
+      await dbU('inscricoes_ebf',id,{status:'cancelado'});
+      await rl('ins');
+      closeM('m-ins');
+      rInscricoes('todas');
+      toast('Inscrição cancelada.','ok');
+    }catch(e){toast('Erro: '+e.message,'err');}
+  });
 }
 
 async function importarIns(id){
   const ins=D.ins.find(x=>x.id===id);
   if(!ins)return;
-  confirm2('Importar Inscrição',`Importar "${ins.nome}" para o cadastro de crianças?`,async()=>{
+  confirm2('Importar para Crianças',`Cadastrar "${ins.nome}" na lista de crianças?`,async()=>{
     try{
-      // Check if already imported (same name + responsavel)
       const existe=D.cr.find(x=>x.nome===ins.nome&&x.responsavel===ins.responsavel);
       if(existe){
         await dbU('inscricoes_ebf',id,{importado:true});
@@ -1169,7 +1326,11 @@ async function importarIns(id){
         nome:ins.nome,idade:ins.idade,data_nasc:ins.data_nasc,sexo:ins.sexo,
         responsavel:ins.responsavel,telefone:ins.telefone,
         tipo:'matriculado',primeira_vez:ins.primeira_vez,
-        observacoes:[ins.alergias?'Alergia: '+ins.alergias:'',ins.restricoes?'Restrição: '+ins.restricoes:'',ins.medicamentos?'Medicamento: '+ins.medicamentos:''].filter(Boolean).join(' | ')||null
+        observacoes:[
+          ins.alergias?'Alergia: '+ins.alergias:'',
+          ins.restricoes?'Restrição: '+ins.restricoes:'',
+          ins.medicamentos?'Medicamento: '+ins.medicamentos:''
+        ].filter(Boolean).join(' | ')||null
       });
       await dbU('inscricoes_ebf',id,{importado:true});
       await rl('ins','cr');
@@ -1180,8 +1341,11 @@ async function importarIns(id){
 }
 
 async function delIns(id){
-  confirm2('Excluir','Remover esta inscrição?',async()=>{
-    await dbD('inscricoes_ebf',id);await rl('ins');rInscricoes('todas');toast('Removida.','ok');
+  confirm2('Excluir','Remover esta inscrição permanentemente?',async()=>{
+    await dbD('inscricoes_ebf',id);
+    await rl('ins');
+    rInscricoes('todas');
+    toast('Removida.','ok');
   });
 }
 
