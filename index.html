@@ -569,7 +569,7 @@ async function rl(...ks){
     if(k==='eq'){D.eq=await dbG('equipe_ebf');document.getElementById('nb-e').textContent=D.eq.length;}
     if(k==='pr')D.pr=await dbG('presencas_ebf');
     if(k==='av')D.av=await dbG('avisos_ebf');
-    if(k==='ins'){D.ins=await dbG('inscricoes_ebf');document.getElementById('nb-i').textContent=D.ins.filter(i=>i.status==='pendente').length||0;}
+    if(k==='ins'){D.ins=await dbG('inscricoes_ebf');const _nbI=D.ins.filter(i=>i.status==='pendente').length;document.getElementById('nb-i').textContent=_nbI>0?_nbI:'';}
     if(k==='g'){D.ge=await dbG('gincana_equipes');D.gm=await dbG('gincana_membros');D.gp=await dbG('gincana_provas');D.gr=await dbG('gincana_resultados');D.gpt=await dbG('gincana_pontuacoes');}
   }
 }
@@ -756,12 +756,33 @@ function rPresBody(data){
     <div class="sg sg-2" style="margin-bottom:9px"><div class="sc" style="padding:11px"><div class="v" style="font-size:1.4rem;color:var(--ok)">${pr}</div><div class="l">Presentes</div></div><div class="sc" style="padding:11px"><div class="v" style="font-size:1.4rem;color:var(--err)">${au}</div><div class="l">Ausentes</div></div></div>
     <div class="sg sg-2" style="margin-bottom:11px"><div class="sc" style="padding:11px"><div class="v" style="font-size:1.4rem;color:var(--info)">${vi}</div><div class="l">Visitantes</div></div><div class="sc" style="padding:11px"><div class="v" style="font-size:1.4rem;color:var(--warn)">${nm}</div><div class="l">Falta marcar</div></div></div>
     <div style="display:flex;gap:7px;margin-bottom:11px"><button class="btn btn-ok btn-sm" onclick="mkTodos('presente')">Todos presentes</button><button class="btn btn-p btn-sm" onclick="svPres()">Salvar chamada</button></div>
-    <div class="card"><div class="cb" style="padding:0 13px">${cr.length===0?'<div class="empty"><p>Sem crianças nesta turma.</p></div>':cr.map(c=>`<div class="pr-row"><div class="pr-n">${c.nome}${c.tipo==='visitante'?' <span class="badge bb" style="font-size:.6rem">V</span>':''}</div><div class="pr-btns"><button class="prb ${pBuf[c.id]==='presente'?'P':''}" onclick="setPres('${c.id}','presente')">P</button><button class="prb ${pBuf[c.id]==='ausente'?'A':''}" onclick="setPres('${c.id}','ausente')">F</button><button class="prb ${pBuf[c.id]==='visitante'?'V':''}" onclick="setPres('${c.id}','visitante')">V</button></div></div>`).join('')}</div></div>
+    <div class="card"><div class="cb" style="padding:0 13px">${cr.length===0?'<div class="empty"><p>Sem crianças nesta turma.</p></div>':cr.map(c=>`<div class="pr-row" data-cid="${c.id}"><div class="pr-n">${c.nome}${c.tipo==='visitante'?' <span class="badge bb" style="font-size:.6rem">V</span>':''}</div><div class="pr-btns"><button class="prb prb-p ${pBuf[c.id]==='presente'?'P':''}" onclick="setPres('${c.id}','presente')">P</button><button class="prb prb-a ${pBuf[c.id]==='ausente'?'A':''}" onclick="setPres('${c.id}','ausente')">F</button><button class="prb prb-v ${pBuf[c.id]==='visitante'?'V':''}" onclick="setPres('${c.id}','visitante')">V</button></div></div>`).join('')}</div></div>
     <div class="f" style="margin-top:11px"><label>Visitantes (nomes)</label><textarea id="pr-vn" style="min-height:52px">${data?.visitantes_nomes||''}</textarea></div>
     <div class="f"><label>Obs do dia</label><textarea id="pr-ob" style="min-height:52px">${data?.obs||''}</textarea></div>
   `;
 }
-function setPres(id,s){pBuf[id]=pBuf[id]===s?undefined:s;const cr=D.cr.filter(c=>c.turma_id===pCfg.turma);const pr=Object.values(pBuf).filter(v=>v==='presente').length,au=Object.values(pBuf).filter(v=>v==='ausente').length,vi=Object.values(pBuf).filter(v=>v==='visitante').length,nm=cr.filter(c=>!pBuf[c.id]).length;const vs=document.querySelectorAll('.sc .v');if(vs[0])vs[0].textContent=pr;if(vs[1])vs[1].textContent=au;if(vs[2])vs[2].textContent=vi;if(vs[3])vs[3].textContent=nm;const row=[...document.querySelectorAll('.pr-row')].find(r=>r.querySelector(`button[onclick*="${id}"]`));if(row)row.querySelectorAll('.prb').forEach((b,i)=>{b.className='prb'+(i===0&&pBuf[id]==='presente'?' P':i===1&&pBuf[id]==='ausente'?' A':i===2&&pBuf[id]==='visitante'?' V':'');});}
+function setPres(id,s){
+  pBuf[id]=pBuf[id]===s?undefined:s;
+  const cr=D.cr.filter(c=>c.turma_id===pCfg.turma);
+  const pr=Object.values(pBuf).filter(v=>v==='presente').length;
+  const au=Object.values(pBuf).filter(v=>v==='ausente').length;
+  const vi=Object.values(pBuf).filter(v=>v==='visitante').length;
+  const nm=cr.filter(c=>!pBuf[c.id]).length;
+  // Update stat chips safely
+  const vs=document.querySelectorAll('.sc .v');
+  if(vs[0])vs[0].textContent=pr;
+  if(vs[1])vs[1].textContent=au;
+  if(vs[2])vs[2].textContent=vi;
+  if(vs[3])vs[3].textContent=nm;
+  // Update button states using data-cid attribute
+  const row=document.querySelector(`.pr-row[data-cid="${id}"]`);
+  if(row){
+    const status=pBuf[id];
+    row.querySelector('.prb-p').className='prb prb-p'+(status==='presente'?' P':'');
+    row.querySelector('.prb-a').className='prb prb-a'+(status==='ausente'?' A':'');
+    row.querySelector('.prb-v').className='prb prb-v'+(status==='visitante'?' V':'');
+  }
+}
 function mkTodos(s){D.cr.filter(c=>c.turma_id===pCfg.turma).forEach(c=>pBuf[c.id]=s);carPres();}
 async function svPres(){if(!pCfg.turma){toast('Selecione uma turma','err');return;}const cr=D.cr.filter(c=>c.turma_id===pCfg.turma);const pr=Object.values(pBuf).filter(v=>v==='presente').length,au=Object.values(pBuf).filter(v=>v==='ausente').length,vi=Object.values(pBuf).filter(v=>v==='visitante').length;try{await dbUps('presencas_ebf',{data:pCfg.dia,turma_id:pCfg.turma,dados:pBuf,presentes:pr,ausentes:au,visitantes:vi,total_criancas:cr.length,visitantes_nomes:document.getElementById('pr-vn')?.value||'',obs:document.getElementById('pr-ob')?.value||''},'data,turma_id');await rl('pr');toast('Chamada salva!','ok');}catch(e){toast('Erro: '+e.message,'err');}}
 
@@ -790,7 +811,7 @@ function credBuscar(b){
   const lista=document.getElementById('cred-lista');
   const res=document.getElementById('cred-resultado');
   res.innerHTML='';
-  if(b.length<2){lista.innerHTML='';return;}
+  if(b.length<2){lista.innerHTML=b.length>0?'<div style="padding:12px;text-align:center;font-size:.8rem;color:var(--t3)">Continue digitando…</div>':'';return;}
   const found=D.cr.filter(c=>(c.nome||'').toLowerCase().includes(b.toLowerCase())).slice(0,6);
   if(found.length===0){lista.innerHTML=`<div class="empty"><div class="e">🔍</div><p>Nenhuma criança encontrada.</p></div>`;return;}
   lista.innerHTML=found.map(c=>{
@@ -1044,17 +1065,22 @@ function cfgField(f) {
 }
 
 async function salvarConfig() {
-  const campos = ['passaporte_preco','passaporte_desc','passaporte_link',
+  const chaves = ['passaporte_preco','passaporte_desc','passaporte_link',
                   'premium_preco','premium_desc','premium_link',
                   'prazo_lote1','evento_data','whatsapp_contato','msg_encerrado'];
   try {
-    for (const k of campos) {
+    let salvos = 0;
+    for (const k of chaves) {
       const el = document.getElementById('cfg-' + k);
       if (!el) continue;
       const val = el.value.trim();
-      await SB.from('config_ebf').upsert({ chave: k, valor: val, updated_at: new Date().toISOString() }, { onConflict: 'chave' });
+      const { error } = await SB.from('config_ebf').upsert(
+        { chave: k, valor: val },
+        { onConflict: 'chave' }
+      );
+      if (!error) salvos++;
     }
-    toast('Configurações salvas!', 'ok');
+    toast(`${salvos} configurações salvas!`, 'ok');
   } catch(e) { toast('Erro: ' + e.message, 'err'); }
 }
 
@@ -1128,6 +1154,15 @@ async function importarIns(id){
   if(!ins)return;
   confirm2('Importar Inscrição',`Importar "${ins.nome}" para o cadastro de crianças?`,async()=>{
     try{
+      // Check if already imported (same name + responsavel)
+      const existe=D.cr.find(x=>x.nome===ins.nome&&x.responsavel===ins.responsavel);
+      if(existe){
+        await dbU('inscricoes_ebf',id,{importado:true});
+        await rl('ins','cr');
+        rInscricoes('todas');
+        toast('Já estava cadastrada — marcada como importada.','ok');
+        return;
+      }
       await dbI('criancas_ebf',{
         nome:ins.nome,idade:ins.idade,data_nasc:ins.data_nasc,sexo:ins.sexo,
         responsavel:ins.responsavel,telefone:ins.telefone,
