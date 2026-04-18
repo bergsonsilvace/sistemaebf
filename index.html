@@ -340,9 +340,12 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);colo
     <div class="fr"><div class="f"><label>Responsável *</label><input id="c-r" placeholder="Nome"></div><div class="f"><label>WhatsApp</label><input id="c-w" placeholder="(85) 9…"></div></div>
     <div class="fr">
       <div class="f"><label>Turma</label><select id="c-t"><option value="">Selecionar…</option></select></div>
-      <div class="f"><label>Tipo</label><select id="c-tp"><option value="matriculado">Matriculado</option><option value="visitante">Visitante</option></select></div>
+      <div class="f"><label>Equipe da Gincana</label><select id="c-eq"><option value="">Sem equipe</option></select></div>
     </div>
-    <div class="f"><label>1ª vez na EBF?</label><select id="c-pv"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
+    <div class="fr">
+      <div class="f"><label>Tipo</label><select id="c-tp"><option value="matriculado">Matriculado</option><option value="visitante">Visitante</option></select></div>
+      <div class="f"><label>1ª vez na EBF?</label><select id="c-pv"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
+    </div>
     <div class="f"><label>Obs / Alergias</label><textarea id="c-o" placeholder="Restrições, alergias…"></textarea></div>
   </div>
   <div class="mf"><button class="btn btn-gh" onclick="closeM('m-c')">Cancelar</button><button class="btn btn-p" onclick="svCrianca()">Salvar</button></div>
@@ -663,10 +666,17 @@ function rCriancas(b='',ft='',ftp=''){
     </div>
     ${l.length===0?`<div class="empty"><div class="e">👦</div><p>Nenhuma criança encontrada.</p></div>`
     :l.map(c=>{const t=D.tr.find(x=>x.id===c.turma_id);
+    const eq=D.ge.find(e=>D.gm.some(m=>m.crianca_id===c.id&&m.equipe_id===e.id));
     return`<div class="card" style="margin-bottom:7px"><div class="cb" style="display:flex;align-items:center;gap:9px;padding:11px 13px">
       <div style="width:34px;height:34px;border-radius:9px;background:${t?.cor||'var(--p)'};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.85rem;flex-shrink:0">${(c.nome||'?')[0].toUpperCase()}</div>
-      <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.nome}${c.primeira_vez==='sim'?' ·  1ª vez':''}</div><div style="font-size:.7rem;color:var(--t3);margin-top:1px">${t?.nome||'Sem turma'} · ${c.idade||'?'} anos</div></div>
-      <span class="badge ${c.tipo==='visitante'?'bb':'bg'}">${c.tipo==='visitante'?'Visitante':'Matriculado'}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.nome}${c.primeira_vez==='sim'?' · 1ª vez':''}</div>
+        <div style="font-size:.7rem;color:var(--t3);margin-top:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+          <span>${t?.nome||'Sem turma'} · ${c.idade||'?'} anos</span>
+          ${eq?`<span style="background:${eq.cor}22;color:${eq.cor};border-radius:10px;padding:1px 7px;font-size:.65rem;font-weight:700">${eq.emoji} ${eq.nome}</span>`:'<span style="background:var(--bg);color:var(--t3);border-radius:10px;padding:1px 7px;font-size:.65rem">Sem equipe</span>'}
+        </div>
+      </div>
+      <span class="badge ${c.tipo==='visitante'?'bb':'bg'}" style="font-size:.65rem">${c.tipo==='visitante'?'V':'M'}</span>
       <div style="display:flex;gap:4px">
         <button class="btn btn-gh btn-sm" onclick="verFicha('${c.id}')">Ficha</button>
         ${c.telefone?`<a href="https://wa.me/55${c.telefone.replace(/\D/g,'')}" class="btn btn-gh btn-sm">📲</a>`:''}
@@ -720,17 +730,77 @@ function verFicha(cid){
 async function opCrianca(id=''){
   document.getElementById('m-c-t').textContent=id?'Editar Criança':'Nova Criança';
   document.getElementById('c-id').value=id;
-  const sel=document.getElementById('c-t');
-  sel.innerHTML='<option value="">Selecionar…</option>'+D.tr.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('');
-  if(id){const c=D.cr.find(x=>x.id===id);if(c){document.getElementById('c-n').value=c.nome||'';document.getElementById('c-i').value=c.idade||'';document.getElementById('c-r').value=c.responsavel||'';document.getElementById('c-w').value=c.telefone||'';document.getElementById('c-t').value=c.turma_id||'';document.getElementById('c-tp').value=c.tipo||'matriculado';document.getElementById('c-pv').value=c.primeira_vez||'nao';document.getElementById('c-o').value=c.observacoes||'';}}
-  else{['c-n','c-i','c-r','c-w','c-o'].forEach(x=>document.getElementById(x).value='');document.getElementById('c-t').value='';document.getElementById('c-tp').value='matriculado';document.getElementById('c-pv').value='nao';}
+  // Preenche turmas
+  const selT=document.getElementById('c-t');
+  selT.innerHTML='<option value="">Selecionar…</option>'+D.tr.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('');
+  // Preenche equipes da gincana
+  const selEq=document.getElementById('c-eq');
+  selEq.innerHTML='<option value="">Sem equipe</option>'+D.ge.map(e=>`<option value="${e.id}">${e.emoji} ${e.nome}</option>`).join('');
+
+  if(id){
+    const c=D.cr.find(x=>x.id===id);
+    if(c){
+      document.getElementById('c-n').value=c.nome||'';
+      document.getElementById('c-i').value=c.idade||'';
+      document.getElementById('c-r').value=c.responsavel||'';
+      document.getElementById('c-w').value=c.telefone||'';
+      document.getElementById('c-t').value=c.turma_id||'';
+      document.getElementById('c-tp').value=c.tipo||'matriculado';
+      document.getElementById('c-pv').value=c.primeira_vez||'nao';
+      document.getElementById('c-o').value=c.observacoes||'';
+      // Verifica se já tem equipe
+      const membroAtual=D.gm.find(m=>m.crianca_id===id);
+      document.getElementById('c-eq').value=membroAtual?.equipe_id||'';
+    }
+  } else {
+    ['c-n','c-i','c-r','c-w','c-o'].forEach(x=>document.getElementById(x).value='');
+    document.getElementById('c-t').value='';
+    document.getElementById('c-eq').value='';
+    document.getElementById('c-tp').value='matriculado';
+    document.getElementById('c-pv').value='nao';
+  }
   openM('m-c');
 }
 async function svCrianca(){
   const id=document.getElementById('c-id').value;
-  const o={nome:document.getElementById('c-n').value.trim(),idade:parseInt(document.getElementById('c-i').value)||null,responsavel:document.getElementById('c-r').value.trim(),telefone:document.getElementById('c-w').value.trim(),turma_id:document.getElementById('c-t').value||null,tipo:document.getElementById('c-tp').value,primeira_vez:document.getElementById('c-pv').value,observacoes:document.getElementById('c-o').value.trim()};
+  const equipeId=document.getElementById('c-eq').value||null;
+  const o={
+    nome:document.getElementById('c-n').value.trim(),
+    idade:parseInt(document.getElementById('c-i').value)||null,
+    responsavel:document.getElementById('c-r').value.trim(),
+    telefone:document.getElementById('c-w').value.trim(),
+    turma_id:document.getElementById('c-t').value||null,
+    tipo:document.getElementById('c-tp').value,
+    primeira_vez:document.getElementById('c-pv').value,
+    observacoes:document.getElementById('c-o').value.trim()
+  };
   if(!o.nome||!o.responsavel){toast('Preencha nome e responsável','err');return;}
-  try{id?await dbU('criancas_ebf',id,o):await dbI('criancas_ebf',o);await rl('cr');closeM('m-c');rCriancas();toast(id?'Atualizado!':'Cadastrado!','ok');}catch(e){toast('Erro: '+e.message,'err');}
+  try{
+    let criancaId=id;
+    if(id){
+      await dbU('criancas_ebf',id,o);
+    } else {
+      const nova=await dbI('criancas_ebf',o);
+      criancaId=nova.id;
+    }
+    // Gerencia equipe da gincana
+    if(criancaId){
+      // Remove vínculo anterior se existir
+      const membroExist=D.gm.find(m=>m.crianca_id===criancaId);
+      if(membroExist && membroExist.equipe_id!==equipeId){
+        await dbD('gincana_membros',membroExist.id);
+      }
+      // Adiciona novo vínculo se selecionou equipe e não tinha esse vínculo
+      if(equipeId && (!membroExist || membroExist.equipe_id!==equipeId)){
+        try{ await dbI('gincana_membros',{equipe_id:equipeId,crianca_id:criancaId}); }
+        catch(e){ if(e.code!=='23505') throw e; }
+      }
+    }
+    await rl('cr','g');
+    closeM('m-c');
+    rCriancas();
+    toast(id?'Criança atualizada!':'Criança cadastrada!','ok');
+  }catch(e){toast('Erro: '+e.message,'err');}
 }
 function dlCrianca(id,n){confirm2('Excluir',`Remover "${n}"?`,async()=>{await dbD('criancas_ebf',id);await rl('cr');rCriancas();toast('Removida.','ok');});}
 
