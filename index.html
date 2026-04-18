@@ -548,16 +548,18 @@ function tickCD(){
 }
 
 async function loadAll(){
-  const[cr,tr,eq,pr,av,ge,gm,gp,gr,gpt]=await Promise.all([
+  const[cr,tr,eq,pr,av,ge,gm,gp,gr,gpt,ins]=await Promise.all([
     dbG('criancas_ebf'),dbG('turmas_ebf'),dbG('equipe_ebf'),
     dbG('presencas_ebf'),dbG('avisos_ebf'),
     dbG('gincana_equipes'),dbG('gincana_membros'),
     dbG('gincana_provas'),dbG('gincana_resultados'),dbG('gincana_pontuacoes'),
+    dbG('inscricoes_ebf'),
   ]);
   const sv=JSON.parse(localStorage.getItem('ebf_cl')||'{}');
   const cl=CL_BASE.map(c=>({...c,done:sv[c.id]||false}));
   D={cr,tr,eq,pr,av,ge,gm,gp,gr,gpt,cl,ins:ins||[]};
-  document.getElementById('nb-i').textContent=(ins||[]).filter(i=>i.status==='pendente').length||'';
+  const _nbI=(ins||[]).filter(i=>i.status==='pendente').length;
+  document.getElementById('nb-i').textContent=_nbI>0?_nbI:'';
   document.getElementById('nb-c').textContent=cr.length;
   document.getElementById('nb-e').textContent=eq.length;
 }
