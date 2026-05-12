@@ -1395,11 +1395,7 @@ async function salvarConfig(){
 
 // ── PWA — INSTALAR APP ────────────────────────────────────────────
 let _pwaPrompt = null;
-const _isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-const _pwaJaDone    = localStorage.getItem('pwa_done') === '1';
-const _pwaSkip      = localStorage.getItem('pwa_skip') === '1';
 
-// Capturar prompt de instalação do browser
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   _pwaPrompt = e;
@@ -1415,33 +1411,25 @@ function instalarApp(){
   if(_pwaPrompt){
     _pwaPrompt.prompt();
     _pwaPrompt.userChoice.then(r=>{
-      if(r.outcome==='accepted'){
-        localStorage.setItem('pwa_done','1');
-        toast('Instalando…','ok');
-      }
+      if(r.outcome==='accepted') localStorage.setItem('pwa_done','1');
       _pwaPrompt = null;
     });
   } else {
-    // iOS Safari — instrução manual
-    alert('No iPhone/iPad:\n1. Toque no ícone de Compartilhar (caixa com seta)\n2. Role para baixo e toque em "Adicionar à Tela Inicial"\n3. Confirme tocando em "Adicionar"');
+    alert('No iPhone/iPad:\n1. Toque no ícone Compartilhar (□↑)\n2. Toque em "Adicionar à Tela Inicial"\n3. Confirme tocando em "Adicionar"');
   }
 }
 
-// Mostrar modal ao digitar no campo usuário (só uma vez, se não instalado)
-// Mostrar modal ao carregar a página de login
-function checkPwaOnLoad(){
-  if(_isStandalone || _pwaJaDone) return;
-  setTimeout(()=> openM('m-pwa'), 800);
+function abrirModalPwa(){
+  // Só abre se não marcou "já instalei"
+  if(localStorage.getItem('pwa_done')==='1') return;
+  // Só abre se não está rodando como app instalado
+  if(window.matchMedia('(display-mode: standalone)').matches) return;
+  openM('m-pwa');
 }
 
-// Mostrar modal ao entrar no sistema (se não marcou "já instalei")
-function checkPwaOnLogin(){
-  if(_isStandalone || _pwaJaDone) return;
-  setTimeout(()=> openM('m-pwa'), 1500);
-}
+function checkPwaOnType(){ /* não usado mais */ }
+function checkPwaOnLogin(){ abrirModalPwa(); }
 
-// Alias mantido por compatibilidade
-function checkPwaOnType(){ checkPwaOnLoad(); }
 
 async function doLogin(){
   const u   = document.getElementById('lu').value.trim();
@@ -3661,14 +3649,10 @@ async function delEsc(id){
   });
 }
 
-// Disparar modal PWA ao carregar — aguarda o DOM estar pronto
-(function tentarPwa(){
-  if(document.getElementById('m-pwa')){
-    checkPwaOnLoad();
-  } else {
-    setTimeout(tentarPwa, 100);
-  }
-})();
+
+
+// Abre modal PWA assim que a página carrega
+setTimeout(function(){ abrirModalPwa(); }, 500);
 </script>
 </body>
 </html>
