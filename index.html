@@ -1161,7 +1161,7 @@ html,body{height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color
       <button onclick="closeM('m-pwa')" style="width:100%;padding:11px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.1);border-radius:10px;font-family:'Outfit',sans-serif;font-size:.82rem;cursor:pointer;margin-bottom:8px">
         Instalar depois
       </button>
-      <button onclick="localStorage.setItem('pwa_done','1');closeM('m-pwa')" style="width:100%;padding:8px;background:none;border:none;color:rgba(255,255,255,.3);font-family:'Outfit',sans-serif;font-size:.75rem;cursor:pointer">
+      <button onclick="closeM('m-pwa')" style="width:100%;padding:8px;background:none;border:none;color:rgba(255,255,255,.3);font-family:'Outfit',sans-serif;font-size:.75rem;cursor:pointer">
         ✓ Já fiz a instalação
       </button>
     </div>
@@ -1420,9 +1420,7 @@ function instalarApp(){
 }
 
 function abrirModalPwa(){
-  // Só abre se não marcou "já instalei"
-  if(localStorage.getItem('pwa_done')==='1') return;
-  // Só abre se não está rodando como app instalado
+  // Não abre se já está rodando como app instalado
   if(window.matchMedia('(display-mode: standalone)').matches) return;
   openM('m-pwa');
 }
