@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0c0a18">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="EBF 2026">
+<link rel="manifest" href="manifest.json">
 <title>EBF 2026 — Sistema de Gestão</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -457,7 +463,36 @@ html,body{height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color
   <div class="f"><label>Senha</label><input id="lp" type="password" placeholder="••••••••" autocomplete="current-password"></div>
   <div id="lerr">Usuário ou senha incorretos</div>
   <button class="btn-login" id="lbtn" onclick="doLogin()">Entrar</button>
+  <button onclick="abrirResetSenha()" style="width:100%;background:none;border:none;color:rgba(255,255,255,.35);font-family:'Outfit',sans-serif;font-size:.75rem;cursor:pointer;margin-top:8px;padding:4px;transition:.15s" onmouseover="this.style.color='rgba(255,255,255,.7)'" onmouseout="this.style.color='rgba(255,255,255,.35)'">
+    🔑 Esqueci minha senha
+  </button>
   <p style="text-align:center;font-size:.65rem;color:rgba(255,255,255,.2);margin-top:14px;letter-spacing:.04em">ADTC AYRTON SENNA 1 · MINISTÉRIO INFANTIL</p>
+
+  <!-- Banner instalar PWA -->
+  <div id="pwa-banner" style="display:none;margin-top:20px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:18px 16px;text-align:center">
+    <div style="font-size:.85rem;font-weight:700;color:#fff;margin-bottom:4px">Instale o app!</div>
+    <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:14px;line-height:1.5">Acesse mais rápido, use mesmo sem internet.</div>
+    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px;text-align:left">
+      <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:9px;padding:9px 12px">
+        <span style="font-size:1rem">⚡</span>
+        <span style="font-size:.78rem;color:rgba(255,255,255,.8)">Ícone na tela inicial do celular</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:9px;padding:9px 12px">
+        <span style="font-size:1rem">🔔</span>
+        <span style="font-size:.78rem;font-weight:700;color:#fff">Avisos e notificações em tempo real</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:9px;padding:9px 12px">
+        <span style="font-size:1rem">📶</span>
+        <span style="font-size:.78rem;color:rgba(255,255,255,.8)">Funciona mesmo sem internet</span>
+      </div>
+    </div>
+    <button id="pwa-install-btn" onclick="instalarApp()" style="width:100%;padding:13px;background:var(--gold);color:var(--ink);border:none;border-radius:var(--rs);font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;margin-bottom:8px;box-shadow:0 4px 16px rgba(232,160,32,.35)">
+      📱 Instalar agora
+    </button>
+    <button onclick="document.getElementById('pwa-banner').style.display='none'" style="width:100%;background:none;border:none;color:rgba(255,255,255,.3);font-family:'Outfit',sans-serif;font-size:.72rem;cursor:pointer;padding:4px">
+      ✓ Já fiz a instalação
+    </button>
+  </div>
 </div>
 </div>
 
@@ -567,7 +602,7 @@ html,body{height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color
       <div class="f"><label>Slogan</label><input id="eq-slogan" placeholder="Frase da equipe"></div>
     </div>
   </div>
-  <div class="mf"><button class="btn btn-gh" onclick="closeM('m-eq')">Cancelar</button><button class="btn btn-p" onclick="svEquipe()">Salvar</button></div>
+  <div class="mf"><button class="btn btn-gh" onclick="closeM('m-eq')">Cancelar</button><button class="btn btn-p" onclick="svEquipe()" style="display:none">Salvar</button><button class="btn btn-p" onclick="svEquipe()">Salvar</button></div>
 </div></div>
 
 <!-- Modal Tarefa do Projeto -->
@@ -847,6 +882,7 @@ html,body{height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color
       <div class="f"><label>Nome *</label><input id="mb-n" placeholder="Nome completo"></div>
       <div class="f"><label>WhatsApp</label><input id="mb-w" placeholder="(85) 9…"></div>
     </div>
+    <div class="f"><label>E-mail</label><input id="mb-email" type="email" placeholder="email@exemplo.com"></div>
 
     <!-- Função e setor -->
     <div style="font-size:.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;margin-top:4px">Função no evento</div>
@@ -1049,6 +1085,92 @@ html,body{height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color
   </div>
 </div></div>
 
+<!-- Modal visualização de célula da escala -->
+<div class="mw" id="m-esc-view"><div class="modal">
+  <div class="mh">
+    <h3 id="m-esc-view-title">Escala</h3>
+    <button class="mc" onclick="closeM('m-esc-view')">✕</button>
+  </div>
+  <div class="mb" id="m-esc-view-body"></div>
+  <div class="mf">
+    <button id="m-esc-view-add" class="btn btn-g btn-full" style="display:none">+ Adicionar voluntário</button>
+    <button class="btn btn-gh" onclick="closeM('m-esc-view')">Fechar</button>
+  </div>
+</div></div>
+
+<!-- Modal visualização de pessoa na escala -->
+<div class="mw" id="m-pessoa-view"><div class="modal" style="max-width:380px">
+  <div class="mh">
+    <h3>Voluntário na Escala</h3>
+    <button class="mc" onclick="closeM('m-pessoa-view')">✕</button>
+  </div>
+  <div class="mb" id="m-pessoa-view-body"></div>
+</div></div>
+
+<!-- Modal Envio de Acesso ao Voluntário -->
+<div class="mw" id="m-envio"><div class="modal" style="max-width:380px">
+  <div class="mh">
+    <h3>✅ Voluntário cadastrado!</h3>
+    <button class="mc" onclick="closeM('m-envio')">✕</button>
+  </div>
+  <div class="mb">
+    <div style="text-align:center;padding:8px 0 16px">
+      <div style="font-size:2rem;margin-bottom:8px">🎉</div>
+      <div style="font-weight:600;font-size:.95rem" id="envio-nome-label">Nome cadastrado</div>
+      <div style="font-size:.75rem;color:var(--muted);margin-top:4px">Login criado com sucesso! Envie o acesso agora:</div>
+    </div>
+
+    <!-- Box com as credenciais -->
+    <div style="background:var(--ink2);border-radius:10px;padding:14px;margin-bottom:16px;text-align:center">
+      <div style="font-size:.65rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Credenciais de acesso</div>
+      <div style="display:flex;justify-content:center;gap:20px">
+        <div>
+          <div style="font-size:.65rem;color:rgba(255,255,255,.4)">Usuário</div>
+          <div style="font-weight:700;color:var(--gold);font-size:.9rem" id="envio-user-label">—</div>
+        </div>
+        <div style="width:1px;background:rgba(255,255,255,.1)"></div>
+        <div>
+          <div style="font-size:.65rem;color:rgba(255,255,255,.4)">Senha</div>
+          <div style="font-weight:700;color:var(--gold);font-size:.9rem" id="envio-pw-label">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botões de envio -->
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button id="btn-envio-wpp" class="btn btn-ok btn-full" onclick="enviarAcessoWpp()" style="gap:8px;font-size:.88rem;padding:12px">
+        <span>📲</span> Enviar acesso pelo WhatsApp
+      </button>
+      <button class="btn btn-gh btn-full" onclick="closeM('m-envio')" style="font-size:.85rem">
+        Fechar sem enviar
+      </button>
+    </div>
+
+    <div id="envio-sem-wpp" style="display:none;margin-top:10px;background:#fef3c7;border-radius:8px;padding:10px 12px;font-size:.75rem;color:#854d0e;text-align:center">
+      ⚠️ Voluntário sem WhatsApp cadastrado.<br>Copie as credenciais acima e envie manualmente.
+    </div>
+  </div>
+</div></div>
+
+<!-- Modal Reset de Senha -->
+<div class="mw" id="m-reset"><div class="modal" style="max-width:360px">
+  <div class="mh">
+    <h3>🔑 Redefinir Senha</h3>
+    <button class="mc" onclick="closeM('m-reset')">✕</button>
+  </div>
+  <div class="mb">
+    <div style="background:var(--bg);border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:.82rem">
+      Redefinindo senha para: <strong id="reset-user-txt">—</strong>
+    </div>
+    <div class="f"><label>Nova senha *</label><input id="reset-nova-pw" type="password" placeholder="mínimo 4 caracteres" autocomplete="new-password"></div>
+    <div class="f"><label>Confirmar nova senha *</label><input id="reset-confirm-pw" type="password" placeholder="repita a senha" autocomplete="new-password"></div>
+  </div>
+  <div class="mf">
+    <button class="btn btn-gh" onclick="closeM('m-reset')">Cancelar</button>
+    <button class="btn btn-p" onclick="svResetSenha()">Redefinir senha</button>
+  </div>
+</div></div>
+
 <div id="cfw"><div class="cfb">
   <h3 id="cf-t">Confirmar</h3><p id="cf-m">Tem certeza?</p>
   <div class="cfr"><button class="btn btn-gh" onclick="closeCf()">Cancelar</button><button class="btn btn-r" id="cf-ok">Confirmar</button></div>
@@ -1139,6 +1261,148 @@ const CL_BASE=[
 // ── LOGIN ────────────────────────────────────
 ['lu','lp'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();}));
 
+
+// Renderiza um campo de configuração
+function cfgField(f){
+  const val = (cfgCache[f.key]) || '';
+  return '<div class="f" style="margin-bottom:12px"><label style="display:block;font-size:.68rem;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">'+f.label+'</label>'
+    +'<input id="cfg-'+f.key+'" type="'+(f.type||'text')+'" value="'+val.replace(/"/g,'&quot;')+'" placeholder="'+(f.placeholder||'')+'" style="width:100%;padding:10px 12px;border:1px solid rgba(12,10,24,.12);border-radius:7px;font-family:Outfit,sans-serif;outline:none;background:var(--bg);color:var(--ink)"></div>';
+}
+
+async function toggleFormulario(atualmenteAtivo){
+  try{
+    const novoValor = atualmenteAtivo ? 'nao' : 'sim';
+    const {data:ex} = await SB.from('config_ebf').select('id').eq('chave','formulario_ativo').maybeSingle();
+    if(ex) await SB.from('config_ebf').update({valor:novoValor}).eq('chave','formulario_ativo');
+    else   await SB.from('config_ebf').insert({chave:'formulario_ativo',valor:novoValor});
+    cfgCache['formulario_ativo'] = novoValor;
+    toast(novoValor==='sim'?'Formulário aberto!':'Formulário fechado!','ok');
+    rConfig();
+  }catch(e){ toast('Erro: '+e.message,'err'); }
+}
+
+// Excluir voluntário da equipe
+
+// Abrir modal para editar equipe da gincana
+function opEquipe(id){
+  const eq = D.ge.find(x=>x.id===id);
+  if(!eq) return;
+  document.getElementById('eq-id').value    = id;
+  document.getElementById('eq-nome').value  = eq.nome||'';
+  document.getElementById('eq-emoji').value = eq.emoji||'';
+  document.getElementById('eq-cor').value   = eq.cor||'#1e40af';
+  const sloganEl = document.getElementById('eq-slogan');
+  if(sloganEl) sloganEl.value = eq.slogan||'';
+  openM('m-eq');
+}
+
+
+function editarEquipe(id){ opEquipe(id); }
+async function svEquipe(){
+  const id    = document.getElementById('eq-id').value;
+  const nome  = document.getElementById('eq-nome').value.trim();
+  const emoji = document.getElementById('eq-emoji').value.trim();
+  const cor   = document.getElementById('eq-cor').value;
+  const sloganEl = document.getElementById('eq-slogan');
+  const slogan = sloganEl ? sloganEl.value.trim() : '';
+  if(!nome){ toast('Informe o nome da equipe','err'); return; }
+  try{
+    const o = {nome, emoji, cor};
+    if(slogan) o.slogan = slogan;
+    await dbU('gincana_equipes', id, o);
+    await rl('ge');
+    closeM('m-eq');
+    rGincana();
+    toast('Equipe atualizada!','ok');
+  }catch(e){ toast('Erro: '+e.message,'err'); }
+}
+
+async function dlMembro(id, nome){
+  confirm2('Excluir voluntário','Remover '+nome+' da equipe?', async()=>{
+    try{
+      await dbD('equipe_ebf', id);
+      await rl('eq');
+      rEquipe();
+      toast('Voluntário removido.','ok');
+    }catch(e){ toast('Erro: '+e.message,'err'); }
+  });
+}
+
+
+// ── ENVIO DE ACESSO + RESET DE SENHA ─────────────────────────────
+
+function abrirEnvioAcesso(){
+  const v = D._novoVoluntario;
+  if(!v) return;
+  document.getElementById('envio-nome-label').textContent = v.nome;
+  document.getElementById('envio-user-label').textContent = v.user;
+  document.getElementById('envio-pw-label').textContent   = v.pw;
+  const temWpp = !!(v.telefone);
+  document.getElementById('btn-envio-wpp').style.display = temWpp ? 'flex' : 'none';
+  document.getElementById('envio-sem-wpp').style.display = temWpp ? 'none' : 'block';
+  closeM('m-mb');
+  openM('m-envio');
+}
+
+function enviarAcessoWpp(){
+  const v = D._novoVoluntario;
+  if(!v || !v.telefone) return;
+  const tel = v.telefone.replace(/\D/g,'');
+  const msg = encodeURIComponent(
+    '🎉 *EBF 2026 — Acesso ao Sistema*\n\n'
+    +'Olá, *'+v.nome+'*! Seu acesso ao sistema de gestão da EBF foi criado.\n\n'
+    +'📱 *Acesse em:* ebfayrtonsenna1.vercel.app\n\n'
+    +'👤 *Usuário:* '+v.user+'\n'
+    +'🔑 *Senha:* '+v.pw+'\n\n'
+    +'_Guarde essas informações. Qualquer dúvida, fale com a coordenação._\n\n'
+    +'_EBF 2026 · ADTC Ayrton Senna 1_'
+  );
+  window.open('https://wa.me/55'+tel+'?text='+msg, '_blank');
+  closeM('m-envio');
+  toast('Mensagem aberta no WhatsApp!','ok');
+}
+
+// Reset de senha — abre modal com campo para nova senha
+function abrirResetSenha(){
+  const user = document.getElementById('lu').value.trim();
+  if(!user){ toast('Digite seu usuário primeiro','err'); return; }
+  document.getElementById('reset-user-txt').textContent = user;
+  document.getElementById('reset-nova-pw').value = '';
+  document.getElementById('reset-confirm-pw').value = '';
+  openM('m-reset');
+}
+
+async function svResetSenha(){
+  const user  = document.getElementById('lu').value.trim();
+  const nova  = document.getElementById('reset-nova-pw').value;
+  const conf  = document.getElementById('reset-confirm-pw').value;
+  if(!user){ toast('Usuário não informado','err'); return; }
+  if(!nova||nova.length<4){ toast('Senha deve ter ao menos 4 caracteres','err'); return; }
+  if(nova !== conf){ toast('As senhas não conferem','err'); return; }
+  const btn = document.querySelector('[onclick="svResetSenha()"]');
+  if(btn){ btn.disabled=true; btn.textContent='Salvando…'; }
+  try{
+    // Tentar resetar em usuarios_ebf
+    const {data:u1} = await SB.from('usuarios_ebf').select('id').eq('login',user).maybeSingle();
+    if(u1){
+      await SB.from('usuarios_ebf').update({senha:nova}).eq('login',user);
+      closeM('m-reset');
+      toast('✓ Senha redefinida! Faça login com a nova senha.','ok');
+      return;
+    }
+    // Tentar em equipe_ebf
+    const {data:u2} = await SB.from('equipe_ebf').select('id').eq('usuario',user).maybeSingle();
+    if(u2){
+      await SB.from('equipe_ebf').update({senha:nova}).eq('usuario',user);
+      closeM('m-reset');
+      toast('✓ Senha redefinida! Faça login com a nova senha.','ok');
+      return;
+    }
+    toast('Usuário não encontrado','err');
+  }catch(e){ toast('Erro: '+e.message,'err'); }
+  if(btn){ btn.disabled=false; btn.textContent='Redefinir senha'; }
+}
+
 async function salvarConfig(){
   const campos = ['passaporte_preco','passaporte_desc','passaporte_link',
     'premium_preco','premium_desc','premium_link',
@@ -1167,6 +1431,45 @@ async function salvarConfig(){
     toast('Erro ao salvar: '+e.message,'err');
   }
   if(btn){ btn.disabled=false; btn.textContent='Salvar todas as configurações'; }
+}
+
+
+// ── PWA — INSTALAR APP ────────────────────────────────────────────
+let _pwaPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  _pwaPrompt = e;
+  // Mostrar banner se ainda não instalou
+  const banner = document.getElementById('pwa-banner');
+  if(banner && !window.matchMedia('(display-mode: standalone)').matches){
+    banner.style.display = 'block';
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  const banner = document.getElementById('pwa-banner');
+  if(banner) banner.style.display = 'none';
+  toast('App instalado com sucesso!','ok');
+});
+
+function instalarApp(){
+  if(_pwaPrompt){
+    _pwaPrompt.prompt();
+    _pwaPrompt.userChoice.then(r=>{
+      if(r.outcome==='accepted') toast('Instalando…','ok');
+      _pwaPrompt = null;
+    });
+  } else {
+    // iOS — instrução manual
+    toast('No iOS: toque em Compartilhar → Adicionar à Tela Inicial','ok');
+  }
+}
+
+// Verificar se já está instalado como PWA
+if(window.matchMedia('(display-mode: standalone)').matches){
+  const banner = document.getElementById('pwa-banner');
+  if(banner) banner.style.display = 'none';
 }
 
 async function doLogin(){
@@ -2201,13 +2504,14 @@ async function opMembro(id=''){
       document.getElementById('mb-w').value    = m.telefone||'';
       document.getElementById('mb-u').value    = m.usuario||'';
       document.getElementById('mb-pw').value   = '';
+      document.getElementById('mb-email').value = m.email||'';
       document.getElementById('mb-perf').value = m.perfil||'equipe';
       _permTemp = Array.isArray(m.permissoes) ? m.permissoes : (PERFIS_PERM[m.perfil||'equipe']||PERFIS_PERM.equipe);
       confirmarPermissoes();
       document.getElementById('mb-o').value    = m.observacoes||'';
     }
   } else {
-    ['mb-n','mb-w','mb-u','mb-pw','mb-o'].forEach(x=>document.getElementById(x).value='');
+    ['mb-n','mb-w','mb-u','mb-pw','mb-o','mb-email'].forEach(x=>document.getElementById(x).value='');
     document.getElementById('mb-f').value    = 'Voluntário(a)';
     document.getElementById('mb-s').value    = 'Apoio Geral';
     document.getElementById('mb-perf').value = 'equipe';
@@ -2237,6 +2541,7 @@ async function svMembro(){
     setor:      document.getElementById('mb-s').value,
     telefone:   document.getElementById('mb-w').value.trim()||null,
     usuario:    user,
+    email:      document.getElementById('mb-email').value.trim()||null,
     perfil:     document.getElementById('mb-perf').value,
     permissoes: _permTemp,
     observacoes:document.getElementById('mb-o').value.trim()||null,
@@ -2249,7 +2554,13 @@ async function svMembro(){
     await rl('eq');
     closeM('m-mb');
     rEquipe();
-    toast(id ? 'Voluntário atualizado!' : 'Criado! Login: '+user, 'ok');
+    if(id){
+      toast('Voluntário atualizado!','ok');
+    } else {
+      // Novo cadastro — oferecer envio do acesso
+      D._novoVoluntario = {nome, user, pw, telefone: document.getElementById('mb-w').value.trim(), email: document.getElementById('mb-email').value.trim()};
+      abrirEnvioAcesso();
+    }
   } catch(e){ toast('Erro: '+e.message,'err'); }
 }
 
@@ -2401,20 +2712,18 @@ function rEscala() {
     {s:'SEG', n:'Segurança',           cor:'#991b1b'},
     {s:'ALI', n:'Alimentação',         cor:'#b45309'},
   ];
-
   const DIAS = [
-    {k:'dia1', n:'Dia 1', dt:'Sex 17/jul', hr:'16h00'},
-    {k:'dia2', n:'Dia 2', dt:'Sáb 18/jul', hr:'14h00'},
-    {k:'dia3', n:'Dia 3', dt:'Dom 19/jul', hr:'09h00'},
+    {k:'dia1', n:'Dia 1', dt:'Sex · 17/jul', hr:'16h00'},
+    {k:'dia2', n:'Dia 2', dt:'Sáb · 18/jul', hr:'14h00'},
+    {k:'dia3', n:'Dia 3', dt:'Dom · 19/jul', hr:'09h00'},
   ];
 
-  // Stats
   const totalEsc = D.esc.length;
-  const setoresAtivos = [...new Set(D.esc.map(e=>e.setor))].length;
+  const setoresAtivos = SETORES.filter(s=>D.esc.some(e=>e.setor===s.s)).length;
   const semEscala = SETORES.filter(s=>!D.esc.some(e=>e.setor===s.s)).length;
+  const isCoord = CU?.perfil==='coordenacao';
 
   document.getElementById('pg').innerHTML = `
-    <!-- Stats + botão -->
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap">
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <div style="background:var(--surf);border:1px solid rgba(12,10,24,.07);border-radius:8px;padding:9px 13px;font-size:.78rem">
@@ -2430,70 +2739,58 @@ function rEscala() {
           <span style="color:#92400e;margin-left:4px">sem ninguém</span>
         </div>` : ''}
       </div>
-      <button class="btn btn-g btn-sm" onclick="abrirModalEsc()" style="padding:8px 14px;white-space:nowrap">+ Adicionar</button>
+      ${isCoord ? '<button class="btn btn-g btn-sm" onclick="abrirModalEsc()" style="padding:8px 14px;white-space:nowrap">+ Adicionar</button>' : ''}
     </div>
 
-    <!-- Grade visual da escala -->
     <div style="overflow-x:auto;margin-bottom:16px">
-      <div style="
-        display:grid;
-        grid-template-columns:110px repeat(3,1fr);
-        gap:0;
-        border-radius:10px;
-        overflow:hidden;
-        box-shadow:0 2px 12px rgba(12,10,24,.1);
-        min-width:440px;
-        border:1px solid rgba(12,10,24,.1);
-      ">
+      <div style="display:grid;grid-template-columns:110px repeat(3,1fr);gap:0;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(12,10,24,.1);min-width:440px;border:1px solid rgba(12,10,24,.1);">
         <!-- Headers -->
         <div style="background:var(--ink);padding:12px 12px;display:flex;align-items:center">
           <span style="font-size:.6rem;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.8px">Setor</span>
         </div>
         ${DIAS.map(d=>`
         <div style="background:var(--ink2);padding:12px 10px;text-align:center;border-left:1px solid rgba(255,255,255,.05)">
-          <div style="font-size:.7rem;font-weight:700;color:#fff;letter-spacing:.02em">${d.n}</div>
+          <div style="font-size:.7rem;font-weight:700;color:#fff">${d.n}</div>
           <div style="font-size:.6rem;color:rgba(255,255,255,.35);margin-top:1px">${d.dt} · ${d.hr}</div>
         </div>`).join('')}
 
-        <!-- Linhas por setor -->
         ${SETORES.map((s,si)=>{
           const isEven = si % 2 === 0;
+          const bg = isEven ? '#fafaf8' : 'var(--surf)';
           return `
-          <div style="background:${isEven?'#fafaf8':'var(--surf)'};padding:9px 11px;border-top:1px solid rgba(12,10,24,.05);display:flex;flex-direction:column;justify-content:center;gap:1px;cursor:default">
-            <div style="font-size:.58rem;font-weight:800;color:${s.cor};letter-spacing:.5px;line-height:1">${s.s}</div>
-            <div style="font-size:.67rem;color:var(--mid);line-height:1.3;margin-top:1px">${s.n}</div>
+          <div style="background:${bg};padding:9px 11px;border-top:1px solid rgba(12,10,24,.05);display:flex;flex-direction:column;justify-content:center;gap:1px">
+            <div style="font-size:.58rem;font-weight:800;color:${s.cor};letter-spacing:.5px">${s.s}</div>
+            <div style="font-size:.67rem;color:var(--mid);margin-top:1px">${s.n}</div>
           </div>
           ${DIAS.map(d=>{
             const pessoas = D.esc.filter(e=>e.setor===s.s&&(e.dia===d.k||e.dia==='todos'));
             return `
-            <div onclick="abrirModalEsc('','${s.s}','${d.k}')"
-              style="background:${isEven?'#fafaf8':'var(--surf)'};padding:7px 8px;border-top:1px solid rgba(12,10,24,.05);border-left:1px solid rgba(12,10,24,.05);min-height:52px;cursor:pointer;transition:.12s;display:flex;flex-direction:column;gap:3px"
-              onmouseover="this.style.background='#f0edf7'" onmouseout="this.style.background='${isEven?'#fafaf8':'var(--surf)'}'">
+            <div onclick="verCelula('${s.s}','${d.k}')"
+              style="background:${bg};padding:7px 8px;border-top:1px solid rgba(12,10,24,.05);border-left:1px solid rgba(12,10,24,.05);min-height:52px;cursor:pointer;transition:.12s;display:flex;flex-direction:column;gap:3px"
+              onmouseover="this.style.background='#f0edf7'" onmouseout="this.style.background='${bg}'">
               ${pessoas.map(p=>`
-              <div onclick="event.stopPropagation();editarEsc('${p.id}')"
+              <div onclick="event.stopPropagation();verPessoa('${p.id}')"
                 style="display:flex;align-items:center;gap:4px;background:${s.cor}14;border:1px solid ${s.cor}25;border-radius:4px;padding:3px 7px;cursor:pointer;transition:.12s"
-                onmouseover="this.style.background='${s.cor}25'" onmouseout="this.style.background='${s.cor}14'">
+                onmouseover="this.style.background='${s.cor}30'" onmouseout="this.style.background='${s.cor}14'">
                 <div style="width:4px;height:4px;border-radius:50%;background:${s.cor};flex-shrink:0"></div>
                 <span style="font-size:.67rem;font-weight:600;color:${s.cor};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${(p.nome_voluntario||'?').split(' ')[0]}</span>
-                <button onclick="event.stopPropagation();delEsc('${p.id}')"
-                  style="background:none;border:none;cursor:pointer;color:${s.cor};opacity:.4;font-size:.65rem;padding:0;line-height:1;flex-shrink:0"
-                  onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.4'">✕</button>
               </div>`).join('')}
-              <div style="font-size:.6rem;color:rgba(12,10,24,.18);margin-top:${pessoas.length?'2':'0'}px">+ add</div>
+              <div style="font-size:.6rem;color:rgba(12,10,24,.2);text-align:center;padding-top:${pessoas.length?'2':'6'}px">
+                ${pessoas.length ? (isCoord ? '+ add' : '') : '+ add'}
+              </div>
             </div>`;
           }).join('')}`;
         }).join('')}
       </div>
     </div>
 
-    <!-- Lista resumo por setor -->
+    <!-- Resumo -->
     <div class="sec-lbl">Resumo por setor</div>
     <div class="card"><div class="cb" style="padding:0 15px">
       ${SETORES.filter(s=>D.esc.some(e=>e.setor===s.s)).map(s=>{
         const total = D.esc.filter(e=>e.setor===s.s).length;
         const nomes = [...new Set(D.esc.filter(e=>e.setor===s.s).map(e=>e.nome_voluntario).filter(Boolean))];
-        return `
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(12,10,24,.05)">
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(12,10,24,.05)">
           <div style="width:30px;height:30px;border-radius:7px;background:${s.cor};display:flex;align-items:center;justify-content:center;color:#fff;font-size:.58rem;font-weight:800;flex-shrink:0">${s.s}</div>
           <div style="flex:1;min-width:0">
             <div style="font-size:.78rem;font-weight:600">${s.n}</div>
@@ -2502,10 +2799,123 @@ function rEscala() {
           <span class="badge bp">${total}</span>
         </div>`;
       }).join('')}
-      ${D.esc.length === 0 ? '<div class="empty" style="padding:24px"><p>Nenhum voluntário escalado ainda.</p></div>' : ''}
+      ${D.esc.length === 0 ? '<div class="empty" style="padding:20px"><p>Nenhum voluntário escalado ainda.</p></div>' : ''}
     </div></div>
   `;
 }
+
+// Abre modal mostrando quem está na célula (setor+dia) com opção de editar p/ coordenação
+function verCelula(setor, dia){
+  const SETORES_MAP = {
+    CGE:'Coordenação Geral',LMI:'Liderança MI',VLMI:'Vice-liderança',
+    SEC:'Secretaria',TES:'Tesouraria',CP:'Coord. Pedagógica',PROF:'Professores',
+    AUX:'Auxiliares',LOG:'Logística',MID:'Mídia',TEO:'Teatro',LOU:'Louvor',
+    REC:'Recepção',SEG:'Segurança',ALI:'Alimentação',
+  };
+  const DIAS_MAP = {dia1:'Dia 1 — Sex 17/jul',dia2:'Dia 2 — Sáb 18/jul',dia3:'Dia 3 — Dom 19/jul'};
+  const COR_MAP = {
+    CGE:'#2d2460',LMI:'#1e3a5f',VLMI:'#1e4070',SEC:'#1e40af',TES:'#065f46',
+    CP:'#4c1d95',PROF:'#7c2d12',AUX:'#92400e',LOG:'#374151',MID:'#0e7490',
+    TEO:'#86198f',LOU:'#0f766e',REC:'#15803d',SEG:'#991b1b',ALI:'#b45309',
+  };
+
+  const pessoas = D.esc.filter(e=>e.setor===setor&&(e.dia===dia||e.dia==='todos'));
+  const cor = COR_MAP[setor]||'#374151';
+  const isCoord = CU?.perfil==='coordenacao';
+
+  let body = '';
+  if(pessoas.length === 0){
+    body = '<div class="empty" style="padding:20px"><div class="e">👤</div><p>Nenhum voluntário escalado neste setor/dia.</p></div>';
+  } else {
+    body = pessoas.map(p=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid rgba(12,10,24,.06)">
+      <div style="width:34px;height:34px;border-radius:9px;background:${cor}18;border:2px solid ${cor}30;display:flex;align-items:center;justify-content:center;font-weight:700;color:${cor};font-size:.85rem;flex-shrink:0">
+        ${(p.nome_voluntario||'?')[0].toUpperCase()}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:.85rem">${p.nome_voluntario||'—'}</div>
+        <div style="font-size:.7rem;color:var(--muted);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap">
+          ${p.funcao_dia?`<span>📌 ${p.funcao_dia}</span>`:''}
+          ${p.horario_entrada?`<span>🕐 ${p.horario_entrada}${p.horario_saida?' – '+p.horario_saida:''}</span>`:''}
+          <span style="background:${cor}15;color:${cor};padding:1px 7px;border-radius:4px;font-size:.63rem;font-weight:700">${p.dia==='todos'?'Todos os dias':p.dia==='dia1'?'Dia 1':p.dia==='dia2'?'Dia 2':'Dia 3'}</span>
+        </div>
+        ${p.observacao?`<div style="font-size:.7rem;color:var(--muted);margin-top:3px;font-style:italic">${p.observacao}</div>`:''}
+      </div>
+      ${isCoord ? `<div style="display:flex;gap:5px;flex-shrink:0">
+        <button class="btn btn-gh btn-sm" onclick="editarEsc('${p.id}');closeM('m-esc-view')">✏</button>
+        <button class="btn btn-r btn-sm" onclick="delEsc('${p.id}');closeM('m-esc-view')">✕</button>
+      </div>` : ''}
+    </div>`).join('');
+  }
+
+  document.getElementById('m-esc-view-title').textContent = (SETORES_MAP[setor]||setor)+' · '+(DIAS_MAP[dia]||dia);
+  document.getElementById('m-esc-view-body').innerHTML = body;
+
+  const addBtn = document.getElementById('m-esc-view-add');
+  if(addBtn) addBtn.style.display = isCoord ? 'flex' : 'none';
+  if(addBtn) addBtn.onclick = ()=>{ closeM('m-esc-view'); abrirModalEsc('',setor,dia); };
+
+  openM('m-esc-view');
+}
+
+// Abre modal de visualização de uma pessoa específica (sem editar/excluir p/ equipe)
+function verPessoa(id){
+  const p = D.esc.find(x=>x.id===id);
+  if(!p) return;
+  const COR_MAP = {
+    CGE:'#2d2460',LMI:'#1e3a5f',VLMI:'#1e4070',SEC:'#1e40af',TES:'#065f46',
+    CP:'#4c1d95',PROF:'#7c2d12',AUX:'#92400e',LOG:'#374151',MID:'#0e7490',
+    TEO:'#86198f',LOU:'#0f766e',REC:'#15803d',SEG:'#991b1b',ALI:'#b45309',
+  };
+  const cor = COR_MAP[p.setor]||'#374151';
+  const isCoord = CU?.perfil==='coordenacao';
+  const diaLbl = p.dia==='todos'?'Todos os dias':p.dia==='dia1'?'Dia 1 — Sex 17/jul':p.dia==='dia2'?'Dia 2 — Sáb 18/jul':'Dia 3 — Dom 19/jul';
+
+  const vol = D.eq.find(v=>v.nome===p.nome_voluntario);
+
+  let body = `
+  <div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:8px 0 16px">
+    <div style="width:56px;height:56px;border-radius:14px;background:${cor};display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:1.4rem;margin-bottom:10px">
+      ${(p.nome_voluntario||'?')[0].toUpperCase()}
+    </div>
+    <div style="font-weight:700;font-size:1rem">${p.nome_voluntario||'—'}</div>
+    ${vol?.funcao?`<div style="font-size:.75rem;color:var(--muted);margin-top:3px">${vol.funcao}</div>`:''}
+  </div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg);border-radius:8px">
+      <span style="font-size:.75rem;color:var(--muted);width:80px;flex-shrink:0">Setor</span>
+      <span style="font-size:.8rem;font-weight:600;color:${cor}">${p.setor}</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg);border-radius:8px">
+      <span style="font-size:.75rem;color:var(--muted);width:80px;flex-shrink:0">Dia(s)</span>
+      <span style="font-size:.8rem;font-weight:600">${diaLbl}</span>
+    </div>
+    ${p.horario_entrada?`<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg);border-radius:8px">
+      <span style="font-size:.75rem;color:var(--muted);width:80px;flex-shrink:0">Horário</span>
+      <span style="font-size:.8rem;font-weight:600">${p.horario_entrada}${p.horario_saida?' – '+p.horario_saida:''}</span>
+    </div>`:''}
+    ${p.funcao_dia?`<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg);border-radius:8px">
+      <span style="font-size:.75rem;color:var(--muted);width:80px;flex-shrink:0">Função</span>
+      <span style="font-size:.8rem;font-weight:600">${p.funcao_dia}</span>
+    </div>`:''}
+    ${p.observacao?`<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 12px;background:var(--bg);border-radius:8px">
+      <span style="font-size:.75rem;color:var(--muted);width:80px;flex-shrink:0">Obs</span>
+      <span style="font-size:.8rem">${p.observacao}</span>
+    </div>`:''}
+    ${vol?.telefone?`<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg);border-radius:8px">
+      <span style="font-size:.75rem;color:var(--muted);width:80px;flex-shrink:0">WhatsApp</span>
+      <a href="https://wa.me/55${vol.telefone.replace(/\D/g,'')}" target="_blank" style="font-size:.8rem;color:var(--ok);font-weight:600">${vol.telefone}</a>
+    </div>`:''}
+  </div>
+  ${isCoord ? `<div style="display:flex;gap:8px;margin-top:16px">
+    <button class="btn btn-gh btn-full" onclick="editarEsc('${p.id}');closeM('m-pessoa-view')">✏ Editar</button>
+    <button class="btn btn-r" onclick="delEsc('${p.id}');closeM('m-pessoa-view')">✕ Remover</button>
+  </div>` : ''}`;
+
+  document.getElementById('m-pessoa-view-body').innerHTML = body;
+  openM('m-pessoa-view');
+}
+
 
 function rInscricoes(ab='pendentes'){
   const pend=D.ins.filter(i=>i.status==='pendente');
