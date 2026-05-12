@@ -459,40 +459,14 @@ html,body{height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color
     <p>Mudança de Rota · Gestão</p>
     <div class="ldiv"></div>
   </div>
-  <div class="f"><label>Usuário</label><input id="lu" placeholder="Seu usuário" autocomplete="username"></div>
+  <div class="f"><label>Usuário</label><input id="lu" placeholder="Seu usuário" autocomplete="username" ></div>
   <div class="f"><label>Senha</label><input id="lp" type="password" placeholder="••••••••" autocomplete="current-password"></div>
   <div id="lerr">Usuário ou senha incorretos</div>
   <button class="btn-login" id="lbtn" onclick="doLogin()">Entrar</button>
-  <button onclick="abrirResetSenha()" style="width:100%;background:none;border:none;color:rgba(255,255,255,.35);font-family:'Outfit',sans-serif;font-size:.75rem;cursor:pointer;margin-top:8px;padding:4px;transition:.15s" onmouseover="this.style.color='rgba(255,255,255,.7)'" onmouseout="this.style.color='rgba(255,255,255,.35)'">
-    🔑 Esqueci minha senha
-  </button>
+
   <p style="text-align:center;font-size:.65rem;color:rgba(255,255,255,.2);margin-top:14px;letter-spacing:.04em">ADTC AYRTON SENNA 1 · MINISTÉRIO INFANTIL</p>
 
-  <!-- Banner instalar PWA -->
-  <div id="pwa-banner" style="display:none;margin-top:20px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:18px 16px;text-align:center">
-    <div style="font-size:.85rem;font-weight:700;color:#fff;margin-bottom:4px">Instale o app!</div>
-    <div style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:14px;line-height:1.5">Acesse mais rápido, use mesmo sem internet.</div>
-    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px;text-align:left">
-      <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:9px;padding:9px 12px">
-        <span style="font-size:1rem">⚡</span>
-        <span style="font-size:.78rem;color:rgba(255,255,255,.8)">Ícone na tela inicial do celular</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:9px;padding:9px 12px">
-        <span style="font-size:1rem">🔔</span>
-        <span style="font-size:.78rem;font-weight:700;color:#fff">Avisos e notificações em tempo real</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border-radius:9px;padding:9px 12px">
-        <span style="font-size:1rem">📶</span>
-        <span style="font-size:.78rem;color:rgba(255,255,255,.8)">Funciona mesmo sem internet</span>
-      </div>
-    </div>
-    <button id="pwa-install-btn" onclick="instalarApp()" style="width:100%;padding:13px;background:var(--gold);color:var(--ink);border:none;border-radius:var(--rs);font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;margin-bottom:8px;box-shadow:0 4px 16px rgba(232,160,32,.35)">
-      📱 Instalar agora
-    </button>
-    <button onclick="document.getElementById('pwa-banner').style.display='none'" style="width:100%;background:none;border:none;color:rgba(255,255,255,.3);font-family:'Outfit',sans-serif;font-size:.72rem;cursor:pointer;padding:4px">
-      ✓ Já fiz a instalação
-    </button>
-  </div>
+
 </div>
 </div>
 
@@ -1152,24 +1126,47 @@ html,body{height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color
   </div>
 </div></div>
 
-<!-- Modal Reset de Senha -->
-<div class="mw" id="m-reset"><div class="modal" style="max-width:360px">
-  <div class="mh">
-    <h3>🔑 Redefinir Senha</h3>
-    <button class="mc" onclick="closeM('m-reset')">✕</button>
-  </div>
-  <div class="mb">
-    <div style="background:var(--bg);border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:.82rem">
-      Redefinindo senha para: <strong id="reset-user-txt">—</strong>
+<!-- Modal Instalar App (PWA) -->
+<div class="mw" id="m-pwa" style="align-items:flex-end">
+  <div style="background:var(--ink);border-radius:20px 20px 0 0;width:100%;max-width:420px;overflow:hidden;box-shadow:0 -8px 40px rgba(0,0,0,.5)">
+
+    <!-- Ícone + nome -->
+    <div style="background:linear-gradient(135deg,var(--gold),#f5c842);padding:28px 24px 22px;text-align:center">
+      <div style="width:70px;height:70px;background:var(--ink);border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 14px;box-shadow:0 8px 24px rgba(0,0,0,.3)">⛺</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--ink)">EBF 2026</div>
+      <div style="font-size:.72rem;color:rgba(12,10,24,.6);margin-top:3px">ADTC Ayrton Senna 1</div>
     </div>
-    <div class="f"><label>Nova senha *</label><input id="reset-nova-pw" type="password" placeholder="mínimo 4 caracteres" autocomplete="new-password"></div>
-    <div class="f"><label>Confirmar nova senha *</label><input id="reset-confirm-pw" type="password" placeholder="repita a senha" autocomplete="new-password"></div>
+
+    <!-- Conteúdo -->
+    <div style="padding:22px 20px">
+      <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:#fff;text-align:center;margin-bottom:6px">Instale o app!</div>
+      <div style="font-size:.76rem;color:rgba(255,255,255,.5);text-align:center;margin-bottom:20px;line-height:1.5">Acesse mais rápido e receba notificações.</div>
+
+      <!-- Benefícios -->
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:22px">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.06);border-radius:10px;padding:11px 14px">
+          <span style="font-size:1.1rem">⚡</span>
+          <span style="font-size:.8rem;color:rgba(255,255,255,.85)">Ícone na tela inicial do celular</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.06);border-radius:10px;padding:11px 14px">
+          <span style="font-size:1.1rem">🔔</span>
+          <span style="font-size:.8rem;font-weight:700;color:#fff">Avisos e notificações em tempo real</span>
+        </div>
+      </div>
+
+      <!-- Botões -->
+      <button onclick="instalarApp();closeM('m-pwa')" style="width:100%;padding:14px;background:var(--gold);color:var(--ink);border:none;border-radius:10px;font-family:'Outfit',sans-serif;font-size:.92rem;font-weight:800;cursor:pointer;margin-bottom:10px;box-shadow:0 4px 20px rgba(232,160,32,.4);display:flex;align-items:center;justify-content:center;gap:8px">
+        📱 Instalar agora
+      </button>
+      <button onclick="closeM('m-pwa')" style="width:100%;padding:11px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.1);border-radius:10px;font-family:'Outfit',sans-serif;font-size:.82rem;cursor:pointer;margin-bottom:8px">
+        Instalar depois
+      </button>
+      <button onclick="localStorage.setItem('pwa_done','1');closeM('m-pwa')" style="width:100%;padding:8px;background:none;border:none;color:rgba(255,255,255,.3);font-family:'Outfit',sans-serif;font-size:.75rem;cursor:pointer">
+        ✓ Já fiz a instalação
+      </button>
+    </div>
   </div>
-  <div class="mf">
-    <button class="btn btn-gh" onclick="closeM('m-reset')">Cancelar</button>
-    <button class="btn btn-p" onclick="svResetSenha()">Redefinir senha</button>
-  </div>
-</div></div>
+</div>
 
 <div id="cfw"><div class="cfb">
   <h3 id="cf-t">Confirmar</h3><p id="cf-m">Tem certeza?</p>
@@ -1363,45 +1360,7 @@ function enviarAcessoWpp(){
 }
 
 // Reset de senha — abre modal com campo para nova senha
-function abrirResetSenha(){
-  const user = document.getElementById('lu').value.trim();
-  if(!user){ toast('Digite seu usuário primeiro','err'); return; }
-  document.getElementById('reset-user-txt').textContent = user;
-  document.getElementById('reset-nova-pw').value = '';
-  document.getElementById('reset-confirm-pw').value = '';
-  openM('m-reset');
-}
 
-async function svResetSenha(){
-  const user  = document.getElementById('lu').value.trim();
-  const nova  = document.getElementById('reset-nova-pw').value;
-  const conf  = document.getElementById('reset-confirm-pw').value;
-  if(!user){ toast('Usuário não informado','err'); return; }
-  if(!nova||nova.length<4){ toast('Senha deve ter ao menos 4 caracteres','err'); return; }
-  if(nova !== conf){ toast('As senhas não conferem','err'); return; }
-  const btn = document.querySelector('[onclick="svResetSenha()"]');
-  if(btn){ btn.disabled=true; btn.textContent='Salvando…'; }
-  try{
-    // Tentar resetar em usuarios_ebf
-    const {data:u1} = await SB.from('usuarios_ebf').select('id').eq('login',user).maybeSingle();
-    if(u1){
-      await SB.from('usuarios_ebf').update({senha:nova}).eq('login',user);
-      closeM('m-reset');
-      toast('✓ Senha redefinida! Faça login com a nova senha.','ok');
-      return;
-    }
-    // Tentar em equipe_ebf
-    const {data:u2} = await SB.from('equipe_ebf').select('id').eq('usuario',user).maybeSingle();
-    if(u2){
-      await SB.from('equipe_ebf').update({senha:nova}).eq('usuario',user);
-      closeM('m-reset');
-      toast('✓ Senha redefinida! Faça login com a nova senha.','ok');
-      return;
-    }
-    toast('Usuário não encontrado','err');
-  }catch(e){ toast('Erro: '+e.message,'err'); }
-  if(btn){ btn.disabled=false; btn.textContent='Redefinir senha'; }
-}
 
 async function salvarConfig(){
   const campos = ['passaporte_preco','passaporte_desc','passaporte_link',
@@ -1436,41 +1395,53 @@ async function salvarConfig(){
 
 // ── PWA — INSTALAR APP ────────────────────────────────────────────
 let _pwaPrompt = null;
+const _isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+const _pwaJaDone    = localStorage.getItem('pwa_done') === '1';
+const _pwaSkip      = localStorage.getItem('pwa_skip') === '1';
 
+// Capturar prompt de instalação do browser
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   _pwaPrompt = e;
-  // Mostrar banner se ainda não instalou
-  const banner = document.getElementById('pwa-banner');
-  if(banner && !window.matchMedia('(display-mode: standalone)').matches){
-    banner.style.display = 'block';
-  }
 });
 
 window.addEventListener('appinstalled', () => {
-  const banner = document.getElementById('pwa-banner');
-  if(banner) banner.style.display = 'none';
-  toast('App instalado com sucesso!','ok');
+  localStorage.setItem('pwa_done','1');
+  closeM('m-pwa');
+  toast('✅ App instalado com sucesso!','ok');
 });
 
 function instalarApp(){
   if(_pwaPrompt){
     _pwaPrompt.prompt();
     _pwaPrompt.userChoice.then(r=>{
-      if(r.outcome==='accepted') toast('Instalando…','ok');
+      if(r.outcome==='accepted'){
+        localStorage.setItem('pwa_done','1');
+        toast('Instalando…','ok');
+      }
       _pwaPrompt = null;
     });
   } else {
-    // iOS — instrução manual
-    toast('No iOS: toque em Compartilhar → Adicionar à Tela Inicial','ok');
+    // iOS Safari — instrução manual
+    alert('No iPhone/iPad:\n1. Toque no ícone de Compartilhar (caixa com seta)\n2. Role para baixo e toque em "Adicionar à Tela Inicial"\n3. Confirme tocando em "Adicionar"');
   }
 }
 
-// Verificar se já está instalado como PWA
-if(window.matchMedia('(display-mode: standalone)').matches){
-  const banner = document.getElementById('pwa-banner');
-  if(banner) banner.style.display = 'none';
+// Mostrar modal ao digitar no campo usuário (só uma vez, se não instalado)
+// Mostrar modal ao carregar a página de login
+function checkPwaOnLoad(){
+  if(_isStandalone || _pwaJaDone) return;
+  setTimeout(()=> openM('m-pwa'), 800);
 }
+
+// Mostrar modal ao entrar no sistema (se não marcou "já instalei")
+function checkPwaOnLogin(){
+  if(_isStandalone || _pwaJaDone) return;
+  setTimeout(()=> openM('m-pwa'), 1500);
+}
+
+// Alias mantido por compatibilidade
+function checkPwaOnType(){ checkPwaOnLoad(); }
 
 async function doLogin(){
   const u   = document.getElementById('lu').value.trim();
@@ -1535,6 +1506,8 @@ async function startApp(){
   go('dashboard');
   // Carregar dados em background — atualiza quando chegar
   loadAll().then(()=>{ if(CP==='dashboard') go('dashboard'); });
+  // Verificar se deve mostrar modal de instalar app
+  checkPwaOnLogin();
 }
 
 // ── CONTROLE DE ACESSO POR PERFIL ──────────────
@@ -3688,6 +3661,14 @@ async function delEsc(id){
   });
 }
 
+// Disparar modal PWA ao carregar — aguarda o DOM estar pronto
+(function tentarPwa(){
+  if(document.getElementById('m-pwa')){
+    checkPwaOnLoad();
+  } else {
+    setTimeout(tentarPwa, 100);
+  }
+})();
 </script>
 </body>
 </html>
