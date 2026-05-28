@@ -2902,58 +2902,133 @@ function rInscricoes(ab='pendentes'){
 }
 
 function insCard(i){
-  const statusCor = i.status==='confirmado' ? '#15803d' : i.status==='cancelado' ? '#b91c1c' : '#d97706';
-  const statusBg  = i.status==='confirmado' ? '#dcfce7' : i.status==='cancelado' ? '#fee2e2' : '#fef3c7';
-  const statusLbl = i.status==='confirmado' ? '✓ Pago' : i.status==='cancelado' ? '✕ Cancelado' : '⏳ Pendente';
-  const pass = i.passaporte==='premium' ? 'Premium R$47' : 'Padrão R$27';
-  return `<div class="card" style="margin-bottom:8px;border-left:3px solid ${statusCor}">
-    <div class="cb" style="padding:12px 14px">
-      <div style="display:flex;align-items:flex-start;gap:10px">
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:600;font-size:.85rem">${i.nome_crianca||i.nome||'—'}</div>
-          <div style="font-size:.71rem;color:var(--muted);margin-top:2px">
-            Resp: ${i.nome_responsavel||'—'} · ${i.whatsapp_responsavel||'—'}
-          </div>
-          <div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap">
-            <span style="background:${statusBg};color:${statusCor};padding:2px 8px;border-radius:4px;font-size:.65rem;font-weight:700">${statusLbl}</span>
-            <span style="background:var(--pale);color:var(--mid);padding:2px 8px;border-radius:4px;font-size:.65rem;font-weight:600">${pass}</span>
-            ${i.importado?'<span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:4px;font-size:.65rem;font-weight:600">Importado</span>':''}
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0">
-          <button class="btn btn-gh btn-sm" onclick="verFichaIns('${i.id}')">Ver ficha</button>
-          ${i.status==='pendente'?`<button class="btn btn-ok btn-sm" onclick="confirmarPagamento('${i.id}')">✓ Confirmar</button>`:''}
-          ${!i.importado?`<button class="btn btn-p btn-sm" onclick="importarInscricao('${i.id}')">↓ Importar</button>`:''}
-        </div>
-      </div>
-    </div>
-  </div>`;
+  var sCor = i.status==='confirmado'?'#15803d':i.status==='cancelado'?'#b91c1c':'#d97706';
+  var sBg  = i.status==='confirmado'?'#dcfce7':i.status==='cancelado'?'#fee2e2':'#fef3c7';
+  var sLbl = i.status==='confirmado'?'✓ Pago':i.status==='cancelado'?'✕ Cancelado':'⏳ Pendente';
+  var nc   = i.nome_crianca||i.nome||'—';
+  var nr   = i.nome_responsavel||i.responsavel||'—';
+  var tel  = i.whatsapp_responsavel||i.telefone||'—';
+  var pass = i.passaporte==='premium'?'Premium R$47':'Padrão R$27';
+  var id   = i.id;
+  return '<div class="card" style="margin-bottom:8px;border-left:3px solid '+sCor+'">'
+    +'<div class="cb" style="padding:12px 14px">'
+    +'<div style="display:flex;align-items:flex-start;gap:10px">'
+    +'<div style="flex:1;min-width:0">'
+    +'<div style="font-weight:600;font-size:.85rem">'+nc+'</div>'
+    +'<div style="font-size:.71rem;color:var(--muted);margin-top:2px">Resp: '+nr+' · '+tel+'</div>'
+    +'<div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap">'
+    +'<span style="background:'+sBg+';color:'+sCor+';padding:2px 8px;border-radius:4px;font-size:.65rem;font-weight:700">'+sLbl+'</span>'
+    +'<span style="background:var(--pale);color:var(--mid);padding:2px 8px;border-radius:4px;font-size:.65rem;font-weight:600">'+pass+'</span>'
+    +(i.importado?'<span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:4px;font-size:.65rem;font-weight:600">Importado</span>':'')
+    +'</div></div>'
+    +'<div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0">'
+    +'<button class="btn btn-gh btn-sm" onclick="verFichaIns(\'' +id+ '\')">Ver ficha</button>'
+    +(i.status==='pendente'?'<button class="btn btn-ok btn-sm" onclick="confirmarPagamento(\'' +id+ '\')">✓ Pago</button>':'')
+    +(!i.importado?'<button class="btn btn-p btn-sm" onclick="importarInscricao(\'' +id+ '\')">↓ Importar</button>':'')
+    +'<button class="btn btn-r btn-sm" onclick="dlInscricao(\'' +id+ '\')">✕</button>'
+    +'</div></div></div></div>';
+}
+
+
+async function dlInscricao(id){
+  const ins = D.ins.find(x=>x.id===id);
+  const nome = ins ? (ins.nome_crianca||ins.nome||'esta inscrição') : 'esta inscrição';
+  confirm2('Excluir inscrição', 'Remover a inscrição de '+nome+'?', async()=>{
+    try{
+      await dbD('inscricoes_ebf', id);
+      await rl('ins');
+      rInscricoes();
+      toast('Inscrição removida.','ok');
+    }catch(e){ toast('Erro: '+e.message,'err'); }
+  });
 }
 
 function verFichaIns(id){
   const i = D.ins.find(x=>x.id===id);
   if(!i) return;
-  document.getElementById('m-ins-title').textContent = 'Ficha — '+(i.nome_crianca||i.nome||'Inscrição');
+  const nc   = i.nome_crianca||i.nome||'—';
+  const nr   = i.nome_responsavel||i.responsavel||'—';
+  const tel  = i.whatsapp_responsavel||i.telefone||'—';
   const pass = i.passaporte==='premium'?'Premium R$47':'Padrão R$27';
-  document.getElementById('m-ins-body').innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        <div><div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Criança</div><div style="font-weight:600;font-size:.85rem">${i.nome_crianca||i.nome||'—'}</div></div>
-        <div><div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Passaporte</div><div style="font-weight:600;font-size:.85rem">${pass}</div></div>
-        <div><div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Responsável</div><div style="font-weight:600;font-size:.85rem">${i.nome_responsavel||'—'}</div></div>
-        <div><div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">WhatsApp</div><div style="font-weight:600;font-size:.85rem">${i.whatsapp_responsavel||'—'}</div></div>
-        <div><div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Idade</div><div style="font-weight:600;font-size:.85rem">${i.idade||'—'} anos</div></div>
-        <div><div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Status</div><div style="font-weight:600;font-size:.85rem">${i.status||'—'}</div></div>
-      </div>
-      ${i.tem_alergia==='sim'?`<div style="background:#fee2e2;border-radius:7px;padding:9px 12px"><div style="font-size:.7rem;font-weight:700;color:#b91c1c;margin-bottom:2px">⚠ Alergias</div><div style="font-size:.8rem">${i.alergias||'—'}</div></div>`:''}
-      ${i.tem_restricao==='sim'?`<div style="background:#fef3c7;border-radius:7px;padding:9px 12px"><div style="font-size:.7rem;font-weight:700;color:#854d0e;margin-bottom:2px">⚠ Restrições</div><div style="font-size:.8rem">${i.restricoes||'—'}</div></div>`:''}
-      <div style="display:flex;gap:7px;margin-top:4px">
-        ${i.status==='pendente'?`<button class="btn btn-ok btn-full" onclick="confirmarPagamento('${i.id}');closeM('m-ins')">✓ Confirmar Pagamento</button>`:''}
-        ${!i.importado?`<button class="btn btn-p btn-full" onclick="importarInscricao('${i.id}');closeM('m-ins')">↓ Importar para Crianças</button>`:''}
-      </div>
-    </div>`;
+  const sCor = i.status==='confirmado'?'#15803d':i.status==='cancelado'?'#b91c1c':'#d97706';
+  const sBg  = i.status==='confirmado'?'#dcfce7':i.status==='cancelado'?'#fee2e2':'#fef3c7';
+  const sLbl = i.status==='confirmado'?'✓ Pago':i.status==='cancelado'?'✕ Cancelado':'⏳ Pendente';
+
+  function R(lbl,val){
+    if(!val||val==='—') return '';
+    return '<div style="padding:8px 0;border-bottom:1px solid rgba(12,10,24,.05)">'
+      +'<div style="font-size:.6rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">'+lbl+'</div>'
+      +'<div style="font-size:.83rem;font-weight:500">'+val+'</div></div>';
+  }
+  function SN(v){ return v==='sim'?'✅ Sim':v==='nao'?'❌ Não':'—'; }
+  function SEC(ico,txt){
+    return '<div style="font-size:.6rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:12px 0 4px">'+ico+' '+txt+'</div>';
+  }
+
+  let b = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:14px;border-bottom:2px solid var(--pale)">'
+    +'<div style="width:44px;height:44px;border-radius:12px;background:var(--ink);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:1.3rem;font-weight:700;flex-shrink:0">'+nc[0].toUpperCase()+'</div>'
+    +'<div><div style="font-weight:700;font-size:.95rem">'+nc+'</div>'
+    +'<div style="margin-top:4px;display:flex;gap:5px;flex-wrap:wrap">'
+    +'<span style="background:'+sBg+';color:'+sCor+';padding:2px 9px;border-radius:4px;font-size:.65rem;font-weight:700">'+sLbl+'</span>'
+    +'<span style="background:var(--pale);color:var(--mid);padding:2px 9px;border-radius:4px;font-size:.65rem;font-weight:600">'+pass+'</span>'
+    +'</div></div></div>';
+
+  b += SEC('👦','Criança');
+  b += R('Nome',nc)+R('Data de Nascimento',i.data_nasc||'')+R('Idade',i.idade?i.idade+' anos':'');
+  b += R('Sexo',i.sexo==='M'?'Masculino':i.sexo==='F'?'Feminino':i.sexo||'');
+  b += R('Primeira vez na EBF',i.primeira_vez==='sim'?'✅ Sim, primeira vez':'Não, já participou');
+
+  b += SEC('👨‍👧','Responsável');
+  b += R('Nome',nr)+R('Parentesco',i.parentesco||'')+R('WhatsApp',tel);
+  b += R('E-mail',i.email||'')+R('Endereço',i.endereco||'')+R('Bairro',i.bairro||'');
+
+  b += SEC('🏥','Saúde');
+  b += R('Tem alergia?',SN(i.tem_alergia));
+  if(i.alergias) b += R('Alergias',i.alergias);
+  b += R('Tem restrição médica?',SN(i.tem_restricao));
+  if(i.restricoes) b += R('Restrições',i.restricoes);
+  b += R('Medicamentos',i.medicamentos||'');
+
+  b += SEC('📋','Autorizações');
+  b += R('Autoriza fotos/vídeos',SN(i.autoriza_foto));
+  b += R('Autoriza decisão médica',SN(i.autoriza_emergencia));
+  b += R('Contato de emergência',i.contato_emergencia||'');
+  b += R('Tel. emergência',i.tel_emergencia||'');
+  b += R('Observações',i.observacoes||'');
+
+  // Botões — usando dataset para evitar problemas de aspas
+  b += '<div id="ficha-btns" style="display:flex;flex-direction:column;gap:8px;margin-top:16px"></div>';
+
+  document.getElementById('m-ins-title').textContent = 'Ficha — '+nc;
+  document.getElementById('m-ins-body').innerHTML = b;
+
+  // Montar botões via JS depois de inserir no DOM
+  const btns = document.getElementById('ficha-btns');
+  if(i.status==='pendente'){
+    const b1 = document.createElement('button');
+    b1.className='btn btn-ok btn-full'; b1.textContent='✓ Confirmar Pagamento';
+    b1.onclick=()=>{ confirmarPagamento(i.id); closeM('m-ins'); };
+    btns.appendChild(b1);
+  }
+  if(!i.importado){
+    const b2 = document.createElement('button');
+    b2.className='btn btn-p btn-full'; b2.textContent='↓ Importar para Crianças';
+    b2.onclick=()=>{ importarInscricao(i.id); closeM('m-ins'); };
+    btns.appendChild(b2);
+  }
+  if(tel && tel!=='—'){
+    const telNum = tel.replace(/\D/g,'');
+    const msg = encodeURIComponent('Olá '+nr+'! ✅ A inscrição de '+nc+' na EBF 2026 foi confirmada! Nos vemos em julho 🎉');
+    const b3 = document.createElement('a');
+    b3.className='btn btn-g btn-full';
+    b3.style.cssText='text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center';
+    b3.href='https://wa.me/55'+telNum+'?text='+msg;
+    b3.target='_blank'; b3.textContent='📲 WhatsApp';
+    btns.appendChild(b3);
+  }
   openM('m-ins');
 }
+
 
 async function confirmarPagamento(id){
   try{
@@ -2965,10 +3040,13 @@ async function confirmarPagamento(id){
     toast('✓ Pagamento confirmado!','ok');
     // Enviar WhatsApp de confirmação
     const i = D.ins.find(x=>x.id===id);
-    if(i?.whatsapp_responsavel){
-      const tel = i.whatsapp_responsavel.replace(/\D/g,'');
-      const msg = encodeURIComponent(`Olá ${i.nome_responsavel}! ✅ O pagamento da inscrição de ${i.nome_crianca||i.nome} na EBF 2026 foi confirmado! Nos vemos em julho 🎉`);
-      window.open(`https://wa.me/55${tel}?text=${msg}`,'_blank');
+    const _telConf = (i?.whatsapp_responsavel||i?.telefone||'').replace(/\D/g,'');
+    const _nomeRespConf = i?.nome_responsavel||i?.responsavel||'';
+    const _nomeCrConf = i?.nome_crianca||i?.nome||'';
+    if(_telConf){
+      const tel = _telConf;
+      const msg = encodeURIComponent('Olá '+_nomeRespConf+'! ✅ O pagamento da inscrição de '+_nomeCrConf+' na EBF 2026 foi confirmado! Nos vemos em julho 🎉');
+      window.open('https://wa.me/55'+tel+'?text='+msg,'_blank');
     }
   }catch(e){ toast('Erro: '+e.message,'err'); }
 }
