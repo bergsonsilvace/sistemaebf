@@ -2908,7 +2908,7 @@ function insCard(i){
   var nc   = i.nome_crianca||i.nome||'—';
   var nr   = i.nome_responsavel||i.responsavel||'—';
   var tel  = i.whatsapp_responsavel||i.telefone||'—';
-  var pass = i.passaporte==='premium'?'Premium R$47':'Padrão R$27';
+  var pass = i.passaporte==='premium'?'Premium R$47':'Padrão R$15';
   var id   = i.id;
   return '<div class="card" style="margin-bottom:8px;border-left:3px solid '+sCor+'">'
     +'<div class="cb" style="padding:12px 14px">'
@@ -2949,7 +2949,7 @@ function verFichaIns(id){
   const nc   = i.nome_crianca||i.nome||'—';
   const nr   = i.nome_responsavel||i.responsavel||'—';
   const tel  = i.whatsapp_responsavel||i.telefone||'—';
-  const pass = i.passaporte==='premium'?'Premium R$47':'Padrão R$27';
+  const pass = i.passaporte==='premium'?'Premium R$47':'Padrão R$15';
   const sCor = i.status==='confirmado'?'#15803d':i.status==='cancelado'?'#b91c1c':'#d97706';
   const sBg  = i.status==='confirmado'?'#dcfce7':i.status==='cancelado'?'#fee2e2':'#fef3c7';
   const sLbl = i.status==='confirmado'?'✓ Pago':i.status==='cancelado'?'✕ Cancelado':'⏳ Pendente';
@@ -3185,7 +3185,7 @@ function rEstatisticas(){
     <div class="sec-lbl">Passaportes</div>
     <div class="card" style="margin-bottom:12px"><div class="cb">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:.85rem">
-        <span style="font-weight:600">Passaporte EBF — R$27</span>
+        <span style="font-weight:600">Passaporte EBF — R$15</span>
         <span style="font-weight:700;color:var(--p)">${pass}</span>
       </div>
       <div class="pbw"><div class="pb" style="background:var(--p);width:${total>0?Math.round(pass/total*100):0}%"></div></div>
@@ -3380,7 +3380,7 @@ function rFinanceiro(ab){
   D.frec=D.frec||[];D.fdes=D.fdes||[];D.ins=D.ins||[];
 
   const insConf=D.ins.filter(i=>i.status==='confirmado');
-  const recIns=insConf.reduce((a,i)=>a+(i.passaporte==='premium'?47:27),0);
+  const recIns=insConf.reduce((a,i)=>a+(i.passaporte==='premium'?47:15),0);
   const recOut=D.frec.filter(r=>r.recebido).reduce((a,r)=>a+(r.valor||0),0);
   const recPrev=D.frec.filter(r=>!r.recebido).reduce((a,r)=>a+(r.valor||0),0);
   const totalRec=recIns+recOut;
@@ -3439,7 +3439,7 @@ function rFinanceiro(ab){
     h += '<div class="card" style="margin-bottom:10px"><div class="cb" style="display:flex;justify-content:space-between;align-items:center">'
       +'<div><div style="font-weight:600;font-size:.84rem">'+insConf.length+' inscrições confirmadas</div>'
       +'<div style="font-size:.7rem;color:var(--muted);margin-top:2px">'
-      +D.ins.filter(i=>i.status==='confirmado'&&i.passaporte!=='premium').length+'× R$27 + '
+      +D.ins.filter(i=>i.status==='confirmado'&&i.passaporte!=='premium').length+'× R$15 + '
       +D.ins.filter(i=>i.status==='confirmado'&&i.passaporte==='premium').length+'× R$47</div></div>'
       +'<div style="font-weight:700;color:var(--ok);font-size:1.1rem">'+fmt(recIns)+'</div>'
       +'</div></div>';
