@@ -495,8 +495,7 @@ html,body{height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color
       <div class="sb-sec">Principal</div>
       <button class="ni on" data-p="dashboard"       onclick="go('dashboard')">      <span class="ico">📊</span>Dashboard</button>
       <button class="ni" data-p="criancas"           onclick="go('criancas')">       <span class="ico">👦</span>Crianças<span class="nb" id="nb-c">0</span></button>
-      <button class="ni" data-p="turmas"             onclick="go('turmas')">         <span class="ico">🏫</span>Turmas</button>
-      <button class="ni" data-p="presenca"           onclick="go('presenca')">       <span class="ico">✅</span>Presença</button>
+            <button class="ni" data-p="sorteio"            onclick="go('sorteio')">        <span class="ico">🎲</span>Sorteio</button>
       <button class="ni" data-p="credenciamento"     onclick="go('credenciamento')"> <span class="ico">🎫</span>Credenciamento</button>
       <button class="ni" data-p="inscricoes"         onclick="go('inscricoes')">     <span class="ico">📝</span>Inscrições<span class="nb" id="nb-i">0</span></button>
       <div class="sb-sec">Evento</div>
@@ -1471,6 +1470,25 @@ async function salvarConfig(){
 }
 
 
+// ── RESTAURAR SESSÃO AUTOMATICAMENTE ────────────────────────────
+(function restaurarSessao(){
+  try {
+    const saved = localStorage.getItem('eu');
+    if(saved){
+      const u = JSON.parse(saved);
+      if(u && u.login){
+        CU = u;
+        // Esconder tela de login e entrar direto
+        document.addEventListener('DOMContentLoaded', ()=>{
+          const loginScreen = document.getElementById('login-screen');
+          if(loginScreen) loginScreen.style.display = 'none';
+          startApp();
+        });
+      }
+    }
+  }catch(e){ localStorage.removeItem('eu'); }
+})();
+
 // ── PWA — INSTALAR APP ────────────────────────────────────────────
 let _pwaPrompt = null;
 
@@ -1525,7 +1543,7 @@ async function doLogin(){
   const local = USERS_LOCAL.find(x=>x.login===u && x.senha===p);
   if(local){
     CU = {...local};
-    sessionStorage.setItem('eu', JSON.stringify(CU));
+    localStorage.setItem('eu', JSON.stringify(CU));
     btn.disabled=false; btn.textContent='Entrar';
     startApp(); return;
   }
@@ -1536,7 +1554,7 @@ async function doLogin(){
       .select('*').eq('login',u).eq('senha',p).maybeSingle();
     if(d1){
       CU = {...d1, nome:d1.nome||d1.login, perfil:d1.perfil||'coordenacao'};
-      sessionStorage.setItem('eu',JSON.stringify(CU));
+      localStorage.setItem('eu',JSON.stringify(CU));
       btn.disabled=false; btn.textContent='Entrar';
       startApp(); return;
     }
@@ -1547,7 +1565,7 @@ async function doLogin(){
             perfil:d2.perfil||'equipe',
             permissoes:d2.permissoes||[],
             setor:d2.setor, funcao:d2.funcao};
-      sessionStorage.setItem('eu',JSON.stringify(CU));
+      localStorage.setItem('eu',JSON.stringify(CU));
       btn.disabled=false; btn.textContent='Entrar';
       startApp(); return;
     }
@@ -1598,8 +1616,8 @@ function canAccess(pg){
   // Fallback por perfil
   const p = CU?.perfil || 'equipe';
   if(p === 'coordenacao') return true;
-  if(p === 'professor') return ['dashboard','criancas','turmas','presenca','credenciamento','programacao','gincana','checklist','avisos','saude'].includes(pg);
-  return ['dashboard','presenca','credenciamento','programacao','gincana','checklist','avisos'].includes(pg);
+  if(p === 'professor') return ['dashboard','criancas','credenciamento','programacao','gincana','checklist','avisos','saude'].includes(pg);
+  return ['dashboard','credenciamento','programacao','gincana','checklist','avisos'].includes(pg);
 }
 
 // ══════════════════════════════════════════════════════
@@ -1608,8 +1626,6 @@ function canAccess(pg){
 const MODULOS_PERM = [
   {id:'dashboard',ico:'📊',nome:'Dashboard',desc:'Visão geral e countdown'},
   {id:'criancas',ico:'👦',nome:'Crianças',desc:'Cadastro e ficha das crianças'},
-  {id:'turmas',ico:'🏫',nome:'Turmas',desc:'Gestão das turmas'},
-  {id:'presenca',ico:'✅',nome:'Presença',desc:'Chamada diária'},
   {id:'credenciamento',ico:'🎫',nome:'Credenciamento',desc:'Entrada e check-in'},
   {id:'inscricoes',ico:'📝',nome:'Inscrições',desc:'Inscrições e passaportes'},
   {id:'programacao',ico:'📅',nome:'Programação',desc:'Programação dos 3 dias'},
@@ -1626,8 +1642,8 @@ const MODULOS_PERM = [
   {id:'configuracoes',ico:'⚙️',nome:'Configurações',desc:'Config do sistema'},
 ];
 const PERFIS_PERM = {
-  equipe:      ['dashboard','presenca','credenciamento','programacao','gincana','checklist','avisos'],
-  professor:   ['dashboard','criancas','turmas','presenca','credenciamento','programacao','gincana','checklist','avisos','saude'],
+  equipe:      ['dashboard','credenciamento','programacao','gincana','checklist','avisos'],
+  professor:   ['dashboard','criancas','credenciamento','programacao','gincana','checklist','avisos','saude'],
   coordenacao: MODULOS_PERM.map(m=>m.id),
 };
 let _permTemp = [...(PERFIS_PERM.equipe)];
@@ -1713,6 +1729,7 @@ async function loadAll(){
     safe(SB.from('checklist_ebf').select('*').order('fase').order('ordem').then(r=>r.data||[])),
     safe(SB.from('projeto_tarefas').select('*').order('fase').order('ordem').then(r=>r.data||[])),
     safe(SB.from('escala_ebf').select('*').order('dia').order('setor').then(r=>r.data||[])),
+    safe(SB.from('credenciamento_ebf').select('*').then(r=>r.data||[])),
     safe(SB.from('financeiro_receitas').select('*').order('created_at',{ascending:false}).then(r=>r.data||[])),
     safe(SB.from('financeiro_despesas').select('*').order('created_at',{ascending:false}).then(r=>r.data||[])),
   ]);
@@ -1721,11 +1738,11 @@ async function loadAll(){
     new Promise(r=>setTimeout(()=>r(null),4000))
   ]);
   const vals = resultado || Array(16).fill([]);
-  const[cr,tr,eq,pr,av,ge,gm,gp,gr,gpt,ins,cl,pt,esc,frec,fdes]=vals;
+  const[cr,tr,eq,pr,av,ge,gm,gp,gr,gpt,ins,cl,pt,esc,frec,fdes,cred]=vals;
   D={
     cr:cr||[],tr:tr||[],eq:eq||[],pr:pr||[],av:av||[],
     ge:ge||[],gm:gm||[],gp:gp||[],gr:gr||[],gpt:gpt||[],
-    cl:cl||[],ins:ins||[],pt:pt||[],esc:esc||[],frec:frec||[],fdes:fdes||[]
+    cl:cl||[],ins:ins||[],pt:pt||[],esc:esc||[],frec:frec||[],fdes:fdes||[],cred:cred||[]
   };
   const _nbI=(D.ins||[]).filter(i=>i.status==='pendente').length;
   const nbI=document.getElementById('nb-i');
@@ -1739,10 +1756,11 @@ async function loadAll(){
 
 async function rl(...ks){
   for(const k of ks){
-    if(k==='cr'){D.cr=await dbG('criancas_ebf');document.getElementById('nb-c').textContent=D.cr.length;}
+    if(k==='cr'){D.cr=await dbG('criancas_ebf');const nbC=document.getElementById('nb-c');if(nbC)nbC.textContent=D.cr.length;}
     if(k==='tr')D.tr=await dbG('turmas_ebf');
-    if(k==='eq'){D.eq=await dbG('equipe_ebf');document.getElementById('nb-e').textContent=D.eq.length;}
+    if(k==='eq'){D.eq=await dbG('equipe_ebf');const nbE=document.getElementById('nb-e');if(nbE)nbE.textContent=D.eq.length;}
     if(k==='pr')D.pr=await dbG('presencas_ebf');
+    if(k==='cred')D.cred=await dbG('credenciamento_ebf');
     if(k==='av')D.av=await dbG('avisos_ebf');
     if(k==='cl'){const r=await SB.from('checklist_ebf').select('*').order('fase').order('ordem');D.cl=r.data||[];}
     if(k==='pt'){const r=await SB.from('projeto_tarefas').select('*').order('fase').order('ordem');D.pt=r.data||[];}
@@ -1754,8 +1772,12 @@ async function rl(...ks){
       ]);
       D.frec=r1.data||[];D.fdes=r2.data||[];
     }
-    if(k==='ins'){D.ins=await dbG('inscricoes_ebf');const _nbI=D.ins.filter(i=>i.status==='pendente').length;document.getElementById('nb-i').textContent=_nbI>0?_nbI:'';}
-    if(k==='g'){D.ge=await dbG('gincana_equipes');D.gm=await dbG('gincana_membros');D.gp=await dbG('gincana_provas');D.gr=await dbG('gincana_resultados');D.gpt=await dbG('gincana_pontuacoes');}
+    if(k==='ins'){D.ins=await dbG('inscricoes_ebf');const nbI=document.getElementById('nb-i');if(nbI){const p=D.ins.filter(i=>i.status==='pendente').length;nbI.textContent=p>0?p:'';}}
+    if(k==='g'||k==='ge')D.ge=await dbG('gincana_equipes');
+    if(k==='g'||k==='gm')D.gm=await dbG('gincana_membros');
+    if(k==='g'||k==='gp')D.gp=await dbG('gincana_provas');
+    if(k==='g'||k==='gr')D.gr=await dbG('gincana_resultados');
+    if(k==='g'||k==='gpt')D.gpt=await dbG('gincana_pontuacoes');
   }
 }
 // saveCL movida para banco
@@ -1769,7 +1791,7 @@ const META={
   dashboard:['Dashboard','Visão geral do evento'],
   criancas:['Crianças','Cadastro de participantes'],
   turmas:['Turmas','Organização das turmas'],
-  presenca:['Presença','Chamada diária'],
+  sorteio:['Sorteio de Equipes','Distribuição automática das crianças'],
   credenciamento:['Credenciamento','Recepção do evento'],
   programacao:['Programação','Cronograma dos 3 dias'],
   gincana:['Gincana','Equipes · Ranking · Provas'],
@@ -1814,10 +1836,10 @@ function go(p){
   document.getElementById('pg').innerHTML = '';
 
   const fn = {
-    dashboard:rDash, criancas:rCriancas, turmas:rTurmas,
-    presenca:rPresenca, inscricoes:rInscricoes, configuracoes:rConfig,
+    dashboard:rDash, criancas:rCriancas,  inscricoes:rInscricoes, configuracoes:rConfig,
     saude:rSaude, estatisticas:rEstatisticas, projeto:rProjeto,
-    escala:rEscala, financeiro:rFinanceiro, credenciamento:rCred,
+    escala:rEscala, financeiro:rFinanceiro, sorteio:rSorteio,
+    credenciamento:rCred,
     programacao:rProg, gincana:rGincana, checklist:rChecklist,
     avisos:rAvisos, equipe:rEquipe, relatorios:rRel
   };
@@ -1834,33 +1856,170 @@ function go(p){
     </div>`;
   }
 }
-function doLogout(){sessionStorage.removeItem('eu');CU=null;document.getElementById('app').style.display='none';document.getElementById('login-screen').style.display='flex';}
+function doLogout(){localStorage.removeItem('eu');CU=null;document.getElementById('app').style.display='none';document.getElementById('login-screen').style.display='flex';}
 
 // ── DASHBOARD ────────────────────────────────
 function rDash(){
   D.cr=D.cr||[];D.ins=D.ins||[];D.ge=D.ge||[];D.cl=D.cl||[];D.eq=D.eq||[];
-  
-  const hoje=new Date().toISOString().split('T')[0];
-  const ph=D.pr.filter(x=>x.data===hoje);
-  const phP=ph.reduce((a,b)=>a+(b.presentes||0),0),phV=ph.reduce((a,b)=>a+(b.visitantes||0),0);
-  const cld=D.cl.filter(c=>c.done).length,clt=D.cl.length;
-  const urg=D.av.filter(a=>a.prioridade==='urgente').slice(0,2);
-  const sorted=[...D.ge].sort((a,b)=>b.pontos-a.pontos),mx=Math.max(1,sorted[0]?.pontos||0);
-  document.getElementById('pg').innerHTML=`
-    <div class="sg sg-4"><div class="sc"><div class="v">${D.cr.length}</div><div class="l">Crianças</div></div><div class="sc"><div class="v">${D.eq.length}</div><div class="l">Voluntários</div></div><div class="sc"><div class="v" style="color:var(--ok)">${phP}</div><div class="l">Presentes hoje</div></div><div class="sc"><div class="v" style="color:var(--info)">${phV}</div><div class="l">Visitantes hoje</div></div></div>
-    ${urg.length?`<div class="sec-lbl">Urgente</div>${urg.map(a=>`<div class="av urgente"><h4>${a.titulo}</h4><p>${a.mensagem}</p></div>`).join('')}`:''}
-    <div class="sec-lbl">Cronograma</div>
-    <div class="card"><div class="cb" style="display:flex;flex-direction:column;gap:9px">
-      ${[['Dia 1','17/jul (Sex)','16h'],['Dia 2','18/jul (Sáb)','14h'],['Dia 3','19/jul (Dom)','09h']].map(([d,dt,h])=>`<div style="display:flex;align-items:center;gap:9px"><div style="background:var(--p);color:#fff;border-radius:6px;padding:3px 8px;font-size:.7rem;font-weight:700;min-width:38px;text-align:center">${d}</div><div style="flex:1;font-size:.83rem;font-weight:500">${dt}</div><div style="font-size:.78rem;color:var(--t3)">${h}</div></div>`).join('')}
-    </div></div>
-    <div class="sec-lbl">Checklist</div>
-    <div class="card"><div class="cb"><div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:4px"><span style="color:var(--t2)">${cld} de ${clt} concluídos</span><span style="font-weight:700;color:var(--p)">${Math.round(cld/clt*100)}%</span></div><div class="pbw"><div class="pb" style="background:var(--p);width:${Math.round(cld/clt*100)}%"></div></div><button class="btn btn-gh btn-sm" style="margin-top:9px;width:100%" onclick="go('checklist')">Ver checklist →</button></div></div>
-    ${sorted.length?`<div class="sec-lbl">Ranking da Gincana</div><div class="card"><div class="cb">${sorted.map((e,i)=>`<div class="li"><span style="font-size:1.2rem">${['🥇','🥈','🥉','4️⃣'][i]}</span><span style="font-size:1.1rem">${e.emoji}</span><div class="li-m"><div class="li-t" style="color:${e.cor}">${e.nome}</div><div class="pbw" style="margin-top:4px"><div class="pb" style="background:${e.cor};width:${Math.round(e.pontos/mx*100)}%"></div></div></div><span style="font-weight:700;color:${e.cor};font-size:.88rem">${e.pontos}pts</span></div>`).join('')}</div></div>`:''}
-    ${CU.perfil==='coordenacao'?`<div class="sec-lbl">Placar</div><div class="card"><div class="cb"><p style="font-size:.82rem;color:var(--t2);margin-bottom:10px">Projete o ranking no telão durante o evento.</p><button class="btn btn-p btn-full" onclick="openPlacar()">Abrir placar ao vivo</button></div></div>`:''}
-  `;
+  D.gm=D.gm||[];D.gpt=D.gpt||[];D.cred=D.cred||[];D.fdes=D.fdes||[];D.frec=D.frec||[];
+
+  // ── Dados calculados ──────────────────────────
+  const diasEv = ['dia1','dia2','dia3'];
+  const hoje   = new Date();
+  const evDate = new Date('2026-07-17T16:00:00');
+  const diff   = evDate - hoje;
+  const diasFalt = Math.max(0, Math.floor(diff/86400000));
+  const hFalt    = Math.max(0, Math.floor((diff%86400000)/3600000));
+  const eventoAcontecendo = diff <= 0 && diff > -3*86400000;
+
+  // Inscrições
+  const insTotal = D.ins.length;
+  const insPago  = D.ins.filter(i=>i.status==='confirmado').length;
+  const insPend  = D.ins.filter(i=>i.status==='pendente').length;
+
+  // Crianças
+  const crTotal  = D.cr.length;
+  const crSort   = D.gm.length > 0 ? [...new Set(D.gm.map(m=>m.crianca_id))].length : 0;
+
+  // Credenciamento por dia
+  const credD1 = D.cred.filter(c=>c.dia==='dia1').length;
+  const credD2 = D.cred.filter(c=>c.dia==='dia2').length;
+  const credD3 = D.cred.filter(c=>c.dia==='dia3').length;
+
+  // Checklist
+  const clTotal = D.cl.length;
+  const clDone  = D.cl.filter(i=>i.done).length;
+  const clPct   = clTotal > 0 ? Math.round(clDone/clTotal*100) : 0;
+
+  // Financeiro
+  const recTotal  = D.frec.filter(r=>r.recebido).reduce((a,r)=>a+(r.valor||0),0);
+  const despReal  = D.fdes.filter(d=>d.comprado).reduce((a,d)=>a+(d.valor_real||0),0);
+  const despPend  = D.fdes.filter(d=>!d.comprado).reduce((a,d)=>a+(d.valor_orcado||0),0);
+  const saldo     = recTotal - despReal;
+
+  // Equipes — pontuação
+  const pontEq = D.ge.map(eq=>{
+    const pts = D.gpt.filter(p=>p.equipe_id===eq.id).reduce((a,p)=>a+(p.pontos||0),0);
+    const mem = D.gm.filter(m=>m.equipe_id===eq.id).length;
+    return {...eq, pts, mem};
+  }).sort((a,b)=>b.pts-a.pts);
+
+  // Voluntários
+  const volTotal = D.eq.length;
+
+  let html = '';
+
+  // ── COUNTDOWN ─────────────────────────────────
+  if(eventoAcontecendo){
+    html += '<div style="background:#534AB7;border-radius:12px;padding:16px;text-align:center;margin-bottom:14px">'
+      +'<div style="font-size:1rem;font-weight:700;color:#EEEDFE">🎉 EBF 2026 está acontecendo!</div>'
+      +'<div style="font-size:.8rem;color:rgba(238,237,254,.7);margin-top:4px">17–19 de Julho · ADTC Ayrton Senna 1</div>'
+      +'</div>';
+  } else if(diasFalt > 0){
+    html += '<div style="background:var(--ink);border-radius:12px;padding:16px;margin-bottom:14px">'
+      +'<div style="font-size:.68rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">⏳ Contagem regressiva</div>'
+      +'<div style="display:flex;gap:8px;justify-content:center">';
+    [[diasFalt,'dias'],[hFalt,'horas']].forEach(([n,l])=>{
+      html += '<div style="background:rgba(255,255,255,.08);border-radius:9px;padding:10px 16px;text-align:center">'
+        +'<div style="font-family:\'Playfair Display\',serif;font-size:1.8rem;font-weight:700;color:var(--gold)">'+n+'</div>'
+        +'<div style="font-size:.65rem;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px">'+l+'</div>'
+        +'</div>';
+    });
+    html += '</div>'
+      +'<div style="font-size:.72rem;color:rgba(255,255,255,.4);text-align:center;margin-top:8px">17 de Julho de 2026 · 16h00</div>'
+      +'</div>';
+  }
+
+  // ── INSCRIÇÕES ────────────────────────────────
+  html += '<div class="sec-lbl" style="margin-bottom:8px">📝 Inscrições</div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px">';
+  [
+    [insTotal,'Total','var(--ink)'],
+    [insPago,'Pagos','var(--ok)'],
+    [insPend,'Pendentes','var(--warn)'],
+  ].forEach(([n,l,cor])=>{
+    html += '<div class="sc"><div class="l">'+l+'</div>'
+      +'<div class="v" style="font-size:1.3rem;color:'+cor+'">'+n+'</div></div>';
+  });
+  html += '</div>';
+
+  // ── CRIANÇAS + SORTEIO ────────────────────────
+  html += '<div class="sec-lbl" style="margin-bottom:8px">👦 Crianças</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px">';
+  html += '<div class="sc"><div class="l">Cadastradas</div><div class="v" style="font-size:1.3rem">'+crTotal+'</div></div>';
+  html += '<div class="sc"><div class="l">Sorteadas</div><div class="v" style="font-size:1.3rem;color:'+(crSort===crTotal&&crTotal>0?'var(--ok)':'var(--warn)')+'">'+crSort+'</div></div>';
+  html += '</div>';
+
+  // ── CREDENCIAMENTO (só mostra durante/pré-evento) ──
+  if(diasFalt <= 7 || eventoAcontecendo){
+    html += '<div class="sec-lbl" style="margin-bottom:8px">🎫 Credenciamento</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px">';
+    [[credD1,'Dia 1'],[credD2,'Dia 2'],[credD3,'Dia 3']].forEach(([n,l])=>{
+      html += '<div class="sc"><div class="l">'+l+'</div><div class="v" style="font-size:1.3rem;color:var(--ok)">'+n+'</div></div>';
+    });
+    html += '</div>';
+  }
+
+  // ── PLACAR DAS EQUIPES ────────────────────────
+  if(D.ge.length > 0){
+    html += '<div class="sec-lbl" style="margin-bottom:8px">🏆 Ranking das Equipes</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">';
+    pontEq.forEach((eq,i) => {
+      const maxPts = pontEq[0].pts || 1;
+      const pct = maxPts > 0 ? Math.round(eq.pts/maxPts*100) : 0;
+      html += '<div style="background:var(--surf);border:1px solid rgba(12,10,24,.07);border-radius:9px;padding:10px 13px">'
+        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">'
+        +'<div style="display:flex;align-items:center;gap:7px">'
+        +'<span style="font-size:.75rem;font-weight:800;color:'+(i===0?'var(--gold)':'var(--muted)')+'">'+['🥇','🥈','🥉','4º'][i]+'</span>'
+        +'<span style="font-size:.83rem;font-weight:600">'+eq.emoji+' '+eq.nome+'</span>'
+        +'<span style="font-size:.65rem;color:var(--muted)">'+eq.mem+' membros</span>'
+        +'</div>'
+        +'<span style="font-size:.83rem;font-weight:700;color:'+eq.cor+'">'+eq.pts+' pts</span>'
+        +'</div>'
+        +'<div style="background:var(--pale);border-radius:4px;height:5px;overflow:hidden">'
+        +'<div style="background:'+eq.cor+';width:'+pct+'%;height:5px;border-radius:4px;transition:.8s"></div>'
+        +'</div></div>';
+    });
+    html += '</div>';
+  }
+
+  // ── CHECKLIST ─────────────────────────────────
+  html += '<div class="sec-lbl" style="margin-bottom:8px">☑️ Checklist de Preparação</div>';
+  html += '<div class="card" style="margin-bottom:14px"><div class="cb">'
+    +'<div style="display:flex;justify-content:space-between;margin-bottom:6px">'
+    +'<span style="font-size:.78rem;color:var(--mid)">'+clDone+' de '+clTotal+' concluídos</span>'
+    +'<span style="font-size:.78rem;font-weight:700;color:'+(clPct===100?'var(--ok)':'var(--p)')+'">'+clPct+'%</span>'
+    +'</div>'
+    +'<div style="background:var(--pale);border-radius:4px;height:7px;overflow:hidden">'
+    +'<div style="background:'+(clPct===100?'var(--ok)':'var(--p)')+';width:'+clPct+'%;height:7px;border-radius:4px;transition:.8s"></div>'
+    +'</div>'
+    +'<button onclick="go(\'checklist\')" style="margin-top:9px;width:100%;background:none;border:1px solid rgba(12,10,24,.1);border-radius:6px;padding:6px;font-size:.75rem;color:var(--mid);cursor:pointer;font-family:\'Outfit\'">Ver checklist →</button>'
+    +'</div></div>';
+
+  // ── FINANCEIRO ────────────────────────────────
+  html += '<div class="sec-lbl" style="margin-bottom:8px">💰 Financeiro</div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px">';
+  const saldoCor = saldo >= 0 ? 'var(--ok)' : 'var(--err)';
+  [
+    [fmt(recTotal),'Receita','var(--ok)'],
+    [fmt(despReal),'Gasto','var(--err)'],
+    [fmt(saldo),'Saldo',saldoCor],
+  ].forEach(([n,l,cor])=>{
+    html += '<div class="sc"><div class="l">'+l+'</div>'
+      +'<div style="font-size:.88rem;font-weight:700;color:'+cor+';margin-top:3px">'+n+'</div></div>';
+  });
+  html += '</div>';
+
+  // ── VOLUNTÁRIOS ───────────────────────────────
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:4px">';
+  html += '<div class="sc"><div class="l">👥 Voluntários</div><div class="v" style="font-size:1.3rem">'+volTotal+'</div></div>';
+  html += '<div class="sc"><div class="l">📋 Despesas pendentes</div><div class="v" style="font-size:1.3rem;color:var(--warn)">'+D.fdes.filter(d=>!d.comprado).length+'</div></div>';
+  html += '</div>';
+
+  document.getElementById('pg').innerHTML = (window._offlineBanner||'') + html;
 }
 
-// ── CRIANÇAS ─────────────────────────────────
+
 function rCriancas(b='',ft='',ftp=''){
   D.cr=D.cr||[];D.tr=D.tr||[];
   
@@ -2176,6 +2335,252 @@ function mkTodos(s){D.cr.filter(c=>c.turma_id===pCfg.turma).forEach(c=>pBuf[c.id
 async function svPres(){if(!pCfg.turma){toast('Selecione uma turma','err');return;}const cr=D.cr.filter(c=>c.turma_id===pCfg.turma);const pr=Object.values(pBuf).filter(v=>v==='presente').length,au=Object.values(pBuf).filter(v=>v==='ausente').length,vi=Object.values(pBuf).filter(v=>v==='visitante').length;try{await dbUps('presencas_ebf',{data:pCfg.dia,turma_id:pCfg.turma,dados:pBuf,presentes:pr,ausentes:au,visitantes:vi,total_criancas:cr.length,visitantes_nomes:document.getElementById('pr-vn')?.value||'',obs:document.getElementById('pr-ob')?.value||''},'data,turma_id');await rl('pr');toast('Chamada salva!','ok');}catch(e){toast('Erro: '+e.message,'err');}}
 
 // ── CREDENCIAMENTO ───────────────────────────
+function rSorteio(){
+  D.cr=D.cr||[]; D.ge=D.ge||[]; D.gm=D.gm||[];
+
+  const total  = D.cr.length;
+  const nEq    = D.ge.length;
+  const meninos= D.cr.filter(c=>c.sexo==='M').length;
+  const meninas= D.cr.filter(c=>c.sexo==='F').length;
+  const semSexo= D.cr.filter(c=>!c.sexo||c.sexo==='').length;
+  const jaSort = D.gm.length;
+
+  // Contagem por equipe
+  function countEq(id){ return D.gm.filter(m=>m.equipe_id===id).length; }
+
+  let html = '';
+
+  // ── Cards de resumo ──────────────────────────
+  html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px">';
+  html += '<div class="sc"><div class="l">Total de crianças</div><div class="v" style="font-size:1.4rem">'+total+'</div></div>';
+  html += '<div class="sc"><div class="l">Já sorteadas</div><div class="v" style="font-size:1.4rem;color:'+(jaSort>0?'var(--ok)':'var(--muted)')+'">'+jaSort+'</div></div>';
+  html += '<div class="sc"><div class="l">Meninos</div><div class="v" style="font-size:1.4rem;color:#1e40af">'+meninos+'</div></div>';
+  html += '<div class="sc"><div class="l">Meninas</div><div class="v" style="font-size:1.4rem;color:#be185d">'+meninas+'</div></div>';
+  html += '</div>';
+
+  if(semSexo > 0){
+    html += '<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:9px 13px;font-size:.78rem;color:#92400e;margin-bottom:12px">'
+      +'⚠️ <strong>'+semSexo+' criança(s)</strong> sem sexo cadastrado — serão distribuídas aleatoriamente.</div>';
+  }
+
+  // ── Equipes atuais ───────────────────────────
+  html += '<div class="sec-lbl" style="margin-bottom:8px">Distribuição atual</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">';
+  D.ge.forEach(eq => {
+    const n = countEq(eq.id);
+    const pct = total > 0 ? Math.round(n/total*100) : 0;
+    html += '<div style="background:var(--surf);border:1px solid rgba(12,10,24,.07);border-radius:9px;padding:10px 13px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">'
+      +'<div style="display:flex;align-items:center;gap:7px">'
+      +'<div style="width:10px;height:10px;border-radius:50%;background:'+eq.cor+'"></div>'
+      +'<span style="font-size:.83rem;font-weight:600">'+eq.emoji+' '+eq.nome+'</span>'
+      +'</div>'
+      +'<span style="font-size:.83rem;font-weight:700;color:'+eq.cor+'">'+n+' crianças</span>'
+      +'</div>'
+      +'<div style="background:var(--pale);border-radius:4px;height:5px;overflow:hidden">'
+      +'<div style="background:'+eq.cor+';width:'+pct+'%;height:5px;border-radius:4px;transition:.5s"></div>'
+      +'</div></div>';
+  });
+  html += '</div>';
+
+  // ── Como funciona ───────────────────────────
+  html += '<div style="background:var(--surf);border:1px solid rgba(12,10,24,.07);border-radius:10px;margin-bottom:12px;overflow:hidden">';
+  html += '<div style="padding:9px 13px;border-bottom:1px solid rgba(12,10,24,.06);display:flex;align-items:center;gap:7px">'
+    +'<i class="ti ti-info-circle" style="font-size:15px;color:var(--p3)" aria-hidden="true"></i>'
+    +'<span style="font-size:.78rem;font-weight:700;color:var(--ink)">Como funciona o sorteio?</span>'
+    +'</div>';
+  html += '<div style="padding:10px 13px;display:flex;flex-direction:column;gap:6px">';
+
+  const EXPLICACOES = [
+    {
+      ico:'ti-arrows-shuffle',
+      cor:'#534AB7', bg:'#EEEDFE', tc:'#26215C',
+      titulo:'Aleatório puro',
+      desc:'Embaralha tudo e distribui sem nenhuma regra. Rápido, mas pode gerar equipes desiguais.'
+    },
+    {
+      ico:'ti-stairs',
+      cor:'#0F6E56', bg:'#E1F5EE', tc:'#085041',
+      titulo:'Equilibrar por idade',
+      desc:'Mistura crianças de idades diferentes em cada equipe. Nenhuma equipe fica só com os mais velhos ou mais novos.'
+    },
+    {
+      ico:'ti-gender-bigender',
+      cor:'#993556', bg:'#FBEAF0', tc:'#72243E',
+      titulo:'Equilibrar por sexo',
+      desc:'Distribui meninos e meninas igualmente. Cada equipe fica mista e proporcional.'
+    },
+    {
+      ico:'ti-sparkles',
+      cor:'#534AB7', bg:'#EEEDFE', tc:'#26215C',
+      titulo:'Idade + sexo',
+      desc:'Combina os dois critérios: faixas etárias variadas <em>e</em> proporção igual de meninos e meninas.',
+      destaque: true
+    },
+  ];
+
+  EXPLICACOES.forEach(e => {
+    html += '<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border-radius:8px;background:'
+      +(e.destaque?e.bg:'var(--pale)')+';'
+      +(e.destaque?'border:1px solid '+e.cor+'30;':'')+'">'
+      +'<div style="width:32px;height:32px;border-radius:8px;background:'+e.cor+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+      +'<i class="ti '+e.ico+'" style="font-size:16px;color:#fff" aria-hidden="true"></i>'
+      +'</div>'
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">'
+      +'<span style="font-size:.8rem;font-weight:700;color:'+e.tc+'">'+e.titulo+'</span>'
+      +(e.destaque?'<span style="background:'+e.cor+';color:#fff;font-size:.58rem;font-weight:700;padding:1px 6px;border-radius:3px">recomendado</span>':'')
+      +'</div>'
+      +'<span style="font-size:.73rem;color:var(--mid);line-height:1.5">'+e.desc+'</span>'
+      +'</div>'
+      +'</div>';
+  });
+
+  html += '</div></div>';
+
+  // ── Configurações do sorteio ─────────────────
+  html += '<div class="card" style="margin-bottom:12px"><div class="cb">'
+    +'<div class="sec-lbl" style="margin-bottom:10px">Configurações do sorteio</div>'
+    +'<div class="f"><label>Critério principal</label>'
+    +'<select id="sort-crit" style="width:100%;padding:10px 12px;border:1px solid rgba(12,10,24,.12);border-radius:var(--rs);font-family:\'Outfit\';outline:none;background:var(--bg);color:var(--ink)">'
+    +'<option value="aleatorio">Aleatório puro</option>'
+    +'<option value="idade" selected>Equilibrar por idade (misturar faixas)</option>'
+    +'<option value="sexo">Equilibrar por sexo (igual meninos/meninas)</option>'
+    +'<option value="idade_sexo">Equilibrar por idade + sexo</option>'
+    +'</select></div>'
+    +'<div class="f" style="margin-top:8px"><label>Quem sortear</label>'
+    +'<select id="sort-quem" style="width:100%;padding:10px 12px;border:1px solid rgba(12,10,24,.12);border-radius:var(--rs);font-family:\'Outfit\';outline:none;background:var(--bg);color:var(--ink)">'
+    +'<option value="todos">Todas as crianças (refazer tudo)</option>'
+    +'<option value="sem_equipe" selected>Apenas quem não tem equipe ainda</option>'
+    +'</select></div>'
+    +'</div></div>';
+
+  // ── Botões ───────────────────────────────────
+  html += '<div style="display:flex;gap:8px;margin-bottom:14px">'
+    +'<button class="btn btn-p btn-full" onclick="executarSorteio()" style="flex:2">🎲 Sortear agora</button>'
+    +'<button class="btn btn-r" onclick="limparEquipes()" style="flex:1">🗑 Limpar tudo</button>'
+    +'</div>';
+
+  // ── Resultado se já tiver ────────────────────
+  if(jaSort > 0){
+    html += '<div class="sec-lbl" style="margin-bottom:8px">Resultado do sorteio</div>';
+    D.ge.forEach(eq => {
+      const membros = D.gm.filter(m=>m.equipe_id===eq.id);
+      if(!membros.length) return;
+      const criancas = membros.map(m=>D.cr.find(c=>c.id===m.crianca_id)).filter(Boolean);
+      html += '<div style="background:var(--surf);border:1px solid rgba(12,10,24,.07);border-radius:10px;margin-bottom:8px;overflow:hidden">';
+      html += '<div style="background:'+eq.cor+';padding:9px 13px;display:flex;align-items:center;justify-content:space-between">'
+        +'<span style="font-weight:700;color:#fff;font-size:.85rem">'+eq.emoji+' '+eq.nome+'</span>'
+        +'<span style="background:rgba(255,255,255,.2);color:#fff;padding:2px 9px;border-radius:4px;font-size:.72rem;font-weight:700">'+criancas.length+' crianças</span>'
+        +'</div>';
+      html += '<div style="padding:8px 12px;display:flex;flex-wrap:wrap;gap:5px">';
+      criancas.forEach(cr => {
+        const sexoCor = cr.sexo==='M'?'#1e40af':cr.sexo==='F'?'#be185d':'#6b7280';
+        const sexoBg  = cr.sexo==='M'?'#dbeafe':cr.sexo==='F'?'#fce7f3':'#f3f4f6';
+        html += '<span style="display:inline-flex;align-items:center;gap:4px;background:'+sexoBg+';color:'+sexoCor
+          +';padding:3px 9px;border-radius:5px;font-size:.72rem;font-weight:500">'
+          +(cr.sexo==='M'?'♂':cr.sexo==='F'?'♀':'·')+' '+cr.nome+(cr.idade?' ('+cr.idade+'a)':'')+'</span>';
+      });
+      html += '</div></div>';
+    });
+  }
+
+  document.getElementById('pg').innerHTML = (window._offlineBanner||'') + html;
+}
+
+async function executarSorteio(){
+  const crit = document.getElementById('sort-crit')?.value || 'idade_sexo';
+  const quem = document.getElementById('sort-quem')?.value || 'sem_equipe';
+
+  // Crianças a sortear
+  let pool = quem === 'todos'
+    ? [...D.cr]
+    : D.cr.filter(c => !D.gm.find(m=>m.crianca_id===c.id));
+
+  if(!pool.length){ toast('Nenhuma criança para sortear','err'); return; }
+  if(!D.ge.length){ toast('Nenhuma equipe cadastrada','err'); return; }
+
+  // Se refazer tudo, limpar membros primeiro
+  if(quem === 'todos'){
+    try{
+      const ids = D.gm.map(m=>m.id);
+      for(const id of ids) await dbD('gincana_membros', id);
+      D.gm = [];
+    }catch(e){ toast('Erro ao limpar: '+e.message,'err'); return; }
+  }
+
+  // Algoritmo de distribuição equilibrada
+  // 1. Ordenar pool conforme critério
+  if(crit === 'idade' || crit === 'idade_sexo'){
+    pool.sort((a,b)=>(a.idade||0)-(b.idade||0));
+  }
+
+  // 2. Separar por sexo se necessário
+  let grupos = [pool];
+  if(crit === 'sexo' || crit === 'idade_sexo'){
+    const M = pool.filter(c=>c.sexo==='M');
+    const F = pool.filter(c=>c.sexo==='F');
+    const N = pool.filter(c=>!c.sexo||c.sexo==='');
+    // Embaralhar dentro de cada grupo
+    [M,F,N].forEach(g => { for(let i=g.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[g[i],g[j]]=[g[j],g[i]]; } });
+    grupos = [M,F,N].filter(g=>g.length);
+  } else {
+    // Embaralhar
+    for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]; }
+  }
+
+  // 3. Distribuir snake-draft: equipe 0,1,2,3,3,2,1,0,0,1,...
+  const nEq = D.ge.length;
+  const resultado = D.ge.map(()=>[]);
+  const todasCr = grupos.flat();
+  let dir = 1, eqIdx = 0;
+  todasCr.forEach((cr,i) => {
+    resultado[eqIdx].push(cr);
+    if(eqIdx === nEq-1 && dir===1) dir = -1;
+    else if(eqIdx === 0 && dir===-1) dir = 1;
+    else eqIdx += dir;
+    if(i < todasCr.length-1) eqIdx = Math.max(0,Math.min(nEq-1,eqIdx));
+  });
+
+  // Sempre limpar TODOS os membros antes de sortear (evita duplicatas)
+  const btn = document.querySelector('[onclick="executarSorteio()"]');
+  if(btn){ btn.disabled=true; btn.textContent='Sorteando…'; }
+  try{
+    // Deletar todos os membros existentes
+    for(const m of D.gm) await dbD('gincana_membros', m.id);
+    D.gm = [];
+    const novos = [];
+    for(let i=0;i<D.ge.length;i++){
+      for(const cr of resultado[i]){
+        const reg = await dbI('gincana_membros',{
+          equipe_id:   D.ge[i].id,
+          crianca_id:  cr.id,
+          nome_manual: cr.nome,
+        });
+        if(reg) novos.push(reg);
+      }
+    }
+    // Atualizar D.gm local imediatamente
+    D.gm = [...D.gm, ...novos];
+    rSorteio();
+    toast('🎲 '+todasCr.length+' crianças distribuídas entre '+D.ge.length+' equipes!','ok');
+    rl('gm'); // recarregar em background
+  }catch(e){ toast('Erro: '+e.message,'err'); }
+  if(btn){ btn.disabled=false; btn.textContent='🎲 Sortear agora'; }
+}
+
+async function limparEquipes(){
+  confirm2('Limpar todas as equipes','Remover todas as crianças das equipes?', async()=>{
+    try{
+      for(const m of D.gm) await dbD('gincana_membros', m.id);
+      await rl('gm');
+      rSorteio();
+      toast('Equipes limpas.','ok');
+    }catch(e){ toast('Erro: '+e.message,'err'); }
+  });
+}
+
+
 function rCred(){
   D.cr = D.cr||[]; D.tr = D.tr||[]; D.pr = D.pr||[]; D.ge = D.ge||[]; D.gm = D.gm||[];
 
@@ -2190,8 +2595,9 @@ function rCred(){
     {k:'dia3', n:'Dia 3', dt:'19/jul'},
   ];
 
-  // Presenças do dia selecionado
-  const presencasDia = D.pr.filter(p => p.dia === window._credDia);
+  // Credenciamentos do dia selecionado
+  D.cred = D.cred||[];
+  const presencasDia = D.cred.filter(p => p.dia === window._credDia);
   const presIds = new Set(presencasDia.map(p => p.crianca_id));
 
   // Filtrar crianças
@@ -2330,33 +2736,34 @@ function selCredDia(dia){
 
 async function fazerCheckin(criancaId){
   const dia = window._credDia || 'dia1';
-  // Verificar se já tem
-  if(D.pr.find(p=>p.crianca_id===criancaId&&p.dia===dia)){
+  D.cred = D.cred||[];
+  if(D.cred.find(p=>p.crianca_id===criancaId&&p.dia===dia)){
     toast('Criança já registrada neste dia','err'); return;
   }
+  const cr = D.cr.find(x=>x.id===criancaId);
   const hora = new Date().toTimeString().substring(0,5);
   try{
-    await dbI('presencas_ebf',{
-      crianca_id: criancaId,
+    await dbI('credenciamento_ebf',{
+      crianca_id:   criancaId,
+      crianca_nome: cr?.nome||null,
       dia,
       hora_entrada: hora,
-      presente: true,
     });
-    await rl('pr');
+    await rl('cred');
     rCred();
-    const cr = D.cr.find(x=>x.id===criancaId);
     toast('✓ '+(cr?.nome||'Criança')+' — check-in '+hora,'ok');
   }catch(e){ toast('Erro: '+e.message,'err'); }
 }
 
 async function desfazerCheckin(criancaId){
   const dia = window._credDia || 'dia1';
-  const p = D.pr.find(x=>x.crianca_id===criancaId&&x.dia===dia);
+  D.cred = D.cred||[];
+  const p = D.cred.find(x=>x.crianca_id===criancaId&&x.dia===dia);
   if(!p){ toast('Nenhum check-in encontrado','err'); return; }
   confirm2('Desfazer check-in','Remover a presença desta criança?', async()=>{
     try{
-      await dbD('presencas_ebf', p.id);
-      await rl('pr');
+      await dbD('credenciamento_ebf', p.id);
+      await rl('cred');
       rCred();
       toast('Check-in removido.','ok');
     }catch(e){ toast('Erro: '+e.message,'err'); }
