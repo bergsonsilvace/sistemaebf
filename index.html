@@ -60,7 +60,7 @@ html,body{height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color
 .llogo p{font-size:.72rem;color:rgba(255,255,255,.35);margin-top:4px;text-transform:uppercase;letter-spacing:.06em}
 .ldiv{width:24px;height:1px;background:rgba(232,160,32,.5);margin:12px auto 0}
 .f{margin-bottom:13px}
-.f label{display:block;font-size:.66rem;font-weight:700;color:rgba(255,255,255,.35);margin-bottom:5px;text-transform:uppercase;letter-spacing:.7px}
+.f label{display:block;font-size:.66rem;font-weight:700;color:var(--mid);margin-bottom:5px;text-transform:uppercase;letter-spacing:.7px}#login-screen .f label{color:rgba(255,255,255,.5)}
 .f input,.f select,.f textarea{
   width:100%;padding:11px 13px;border:1px solid rgba(255,255,255,.09);border-radius:var(--rs);
   font-family:'Outfit',sans-serif;font-size:.87rem;color:#fff;
@@ -1168,6 +1168,84 @@ html,body{height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color
   </div>
 </div>
 
+<!-- Modal Editar Inscrição -->
+<div class="mw" id="m-edit-ins"><div class="modal" style="max-width:480px">
+  <div class="mh">
+    <h3>✏ Editar Inscrição</h3>
+    <button class="mc" onclick="closeM('m-edit-ins')">✕</button>
+  </div>
+  <div class="mb">
+    <input type="hidden" id="ei-id">
+    <div class="sec-lbl" style="margin-bottom:8px">Criança</div>
+    <div class="fr">
+      <div class="f"><label>Nome *</label><input id="ei-nome" placeholder="Nome completo"></div>
+      <div class="f"><label>Data de nasc.</label><input id="ei-nasc" type="date"></div>
+    </div>
+    <div class="fr">
+      <div class="f"><label>Sexo</label>
+        <select id="ei-sexo" style="width:100%;padding:10px 12px;border:1px solid rgba(12,10,24,.12);border-radius:var(--rs);font-family:'Outfit';outline:none;background:var(--bg);color:var(--ink)">
+          <option value="">Não informar</option>
+          <option value="M">Masculino</option>
+          <option value="F">Feminino</option>
+        </select>
+      </div>
+      <div class="f"><label>Primeira vez?</label>
+        <select id="ei-pv" style="width:100%;padding:10px 12px;border:1px solid rgba(12,10,24,.12);border-radius:var(--rs);font-family:'Outfit';outline:none;background:var(--bg);color:var(--ink)">
+          <option value="nao">Não, já participou</option>
+          <option value="sim">Sim, primeira vez</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="sec-lbl" style="margin:12px 0 8px">Responsável</div>
+    <div class="fr">
+      <div class="f"><label>Nome *</label><input id="ei-resp" placeholder="Nome do responsável"></div>
+      <div class="f"><label>WhatsApp *</label><input id="ei-tel" placeholder="(85) 9…" type="tel"></div>
+    </div>
+    <div class="fr">
+      <div class="f"><label>Parentesco</label>
+        <select id="ei-paren" style="width:100%;padding:10px 12px;border:1px solid rgba(12,10,24,.12);border-radius:var(--rs);font-family:'Outfit';outline:none;background:var(--bg);color:var(--ink)">
+          <option value="">—</option>
+          <option>Pai</option><option>Mãe</option><option>Avó/Avô</option><option>Tio/Tia</option><option>Outro</option>
+        </select>
+      </div>
+      <div class="f"><label>E-mail</label><input id="ei-email" type="email" placeholder="email@…"></div>
+    </div>
+
+    <div class="sec-lbl" style="margin:12px 0 8px">Passaporte</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
+      <div id="ei-card-p" onclick="selEiPass('passaporte')" style="border:2px solid var(--pale);border-radius:9px;padding:11px 10px;text-align:center;cursor:pointer;transition:.15s;background:var(--bg)">
+        <div style="font-size:.62rem;font-weight:800;color:var(--p3);text-transform:uppercase;letter-spacing:.5px">EBF 2026</div>
+        <div style="font-weight:700;font-size:.88rem;margin:3px 0">Passaporte EBF</div>
+        <div style="font-weight:800;color:var(--ink)">R$ 15</div>
+      </div>
+      <div id="ei-card-g" onclick="selEiPass('premium')" style="border:2px solid var(--pale);border-radius:9px;padding:11px 10px;text-align:center;cursor:pointer;transition:.15s;background:var(--bg)">
+        <div style="font-size:.62rem;font-weight:800;color:#92400e;text-transform:uppercase;letter-spacing:.5px">PREMIUM</div>
+        <div style="font-weight:700;font-size:.88rem;margin:3px 0">Passaporte Premium</div>
+        <div style="font-weight:800;color:var(--ink)">R$ 47</div>
+      </div>
+    </div>
+    <input type="hidden" id="ei-pass" value="passaporte">
+
+    <div class="sec-lbl" style="margin:12px 0 8px">Status do Pagamento</div>
+    <select id="ei-status" style="width:100%;padding:10px 12px;border:1px solid rgba(12,10,24,.12);border-radius:var(--rs);font-family:'Outfit';outline:none;background:var(--bg);color:var(--ink)" onchange="toggleJustificativa()">
+      <option value="pendente">⏳ Pendente — aguardando pagamento</option>
+      <option value="confirmado">✓ Confirmado / Pago</option>
+      <option value="cancelado">✕ Cancelado</option>
+    </select>
+    <div id="ei-just-wrap" style="display:none;margin-top:8px">
+      <div class="f">
+        <label>Justificativa da alteração</label>
+        <textarea id="ei-justificativa" placeholder="Ex: Mudança de passaporte de R$47 para R$15, conforme acordo com responsável." style="min-height:60px;width:100%;padding:10px 12px;border:1px solid rgba(12,10,24,.12);border-radius:var(--rs);font-family:'Outfit';font-size:.85rem;outline:none;background:var(--bg);color:var(--ink)"></textarea>
+      </div>
+    </div>
+  </div>
+  <div class="mf">
+    <button class="btn btn-gh" onclick="closeM('m-edit-ins')">Cancelar</button>
+    <button class="btn btn-p" onclick="svEditarInscricao()">Salvar alterações</button>
+  </div>
+</div></div>
+
 <div id="cfw"><div class="cfb">
   <h3 id="cf-t">Confirmar</h3><p id="cf-m">Tem certeza?</p>
   <div class="cfr"><button class="btn btn-gh" onclick="closeCf()">Cancelar</button><button class="btn btn-r" id="cf-ok">Confirmar</button></div>
@@ -2003,8 +2081,48 @@ function rTurmas(){
     return`<div class="card" style="margin-bottom:8px"><div style="background:${t.cor};padding:11px 13px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-family:'Cormorant Garamond',serif;color:#fff;font-size:.98rem;font-weight:700">${t.nome}</div><div style="color:rgba(255,255,255,.7);font-size:.7rem">${t.faixa_etaria||''}</div></div><div style="display:flex;gap:5px"><button class="btn btn-sm" style="background:rgba(255,255,255,.18);color:#fff;border:none" onclick="opTurma('${t.id}')">Editar</button><button class="btn btn-sm" style="background:rgba(255,0,0,.18);color:#fff;border:none" onclick="dlTurma('${t.id}','${t.nome}')">Excluir</button></div></div><div class="cb" style="padding:11px 13px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:.78rem;margin-bottom:7px"><div><span style="color:var(--t3)">Prof.</span> ${t.professor||'—'}</div><div><span style="color:var(--t3)">Sala</span> ${t.sala||'—'}</div></div><div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:4px"><span style="color:var(--t3)">Crianças</span><span style="font-weight:600">${cnt}${t.capacidade?' / '+t.capacidade:''}</span></div>${t.capacidade?`<div class="pbw"><div class="pb" style="background:${t.cor};width:${pct}%"></div></div>`:''}</div></div>`;}).join('')}
   `;
 }
-async function opTurma(id=''){document.getElementById('m-t-t').textContent=id?'Editar Turma':'Nova Turma';document.getElementById('t-id').value=id;if(id){const t=D.tr.find(x=>x.id===id);if(t){document.getElementById('t-n').value=t.nome||'';document.getElementById('t-f').value=t.faixa_etaria||'';document.getElementById('t-c').value=t.cor||'#33276d';document.getElementById('t-cap').value=t.capacidade||'';document.getElementById('t-p').value=t.professor||'';document.getElementById('t-s').value=t.sala||'';document.getElementById('t-a').value=t.auxiliares||'';}}else{['t-n','t-f','t-cap','t-p','t-s','t-a'].forEach(x=>document.getElementById(x).value='');document.getElementById('t-c').value='#33276d';}openM('m-t');}
-async function svTurma(){const id=document.getElementById('t-id').value;const o={nome:document.getElementById('t-n').value.trim(),faixa_etaria:document.getElementById('t-f').value.trim(),cor:document.getElementById('t-c').value,capacidade:parseInt(document.getElementById('t-cap').value)||null,professor:document.getElementById('t-p').value.trim(),sala:document.getElementById('t-s').value.trim(),auxiliares:document.getElementById('t-a').value.trim()};if(!o.nome){toast('Nome é obrigatório','err');return;}try{id?await dbU('turmas_ebf',id,o):await dbI('turmas_ebf',o);await rl('tr');closeM('m-t');rTurmas();toast(id?'Atualizado!':'Criada!','ok');}catch(e){toast('Erro: '+e.message,'err');}}
+async function opTurma(id=''){
+  document.getElementById('m-t-t').textContent = id ? 'Editar Turma' : 'Nova Turma';
+  document.getElementById('t-id').value = id;
+  if(id){
+    const t = D.tr.find(x=>x.id===id);
+    if(t){
+      document.getElementById('t-n').value   = t.nome||'';
+      document.getElementById('t-f').value   = t.faixa_etaria||'';
+      document.getElementById('t-c').value   = t.cor||'#33276d';
+      document.getElementById('t-cap').value = t.capacidade||'';
+      document.getElementById('t-p').value   = t.professor||'';
+      document.getElementById('t-s').value   = t.sala||'';
+    }
+  } else {
+    ['t-n','t-f','t-cap','t-p','t-s'].forEach(x=>{
+      const el = document.getElementById(x);
+      if(el) el.value = '';
+    });
+    document.getElementById('t-c').value = '#33276d';
+  }
+  openM('m-t');
+}
+async function svTurma(){
+  const id = document.getElementById('t-id').value;
+  const nomeEl = document.getElementById('t-n');
+  if(!nomeEl||!nomeEl.value.trim()){toast('Nome é obrigatório','err');return;}
+  const o={
+    nome:        nomeEl.value.trim(),
+    faixa_etaria:document.getElementById('t-f')?.value.trim()||null,
+    cor:         document.getElementById('t-c')?.value||'#2d2460',
+    capacidade:  parseInt(document.getElementById('t-cap')?.value)||null,
+    professor:   document.getElementById('t-p')?.value.trim()||null,
+    sala:        document.getElementById('t-s')?.value.trim()||null,
+  };
+  try{
+    id ? await dbU('turmas_ebf',id,o) : await dbI('turmas_ebf',o);
+    await rl('tr');
+    closeM('m-t');
+    rTurmas();
+    toast(id?'Turma atualizada!':'Turma criada!','ok');
+  }catch(e){toast('Erro: '+e.message,'err');}
+}
 function dlTurma(id,n){confirm2('Excluir',`Remover "${n}"?`,async()=>{await dbD('turmas_ebf',id);await rl('tr');rTurmas();toast('Removida.','ok');});}
 
 // ── PRESENÇA ─────────────────────────────────
@@ -2059,24 +2177,192 @@ async function svPres(){if(!pCfg.turma){toast('Selecione uma turma','err');retur
 
 // ── CREDENCIAMENTO ───────────────────────────
 function rCred(){
-  document.getElementById('pg').innerHTML=`
-    <div class="cred-wrap">
-      <div class="card" style="margin-bottom:12px"><div class="cb">
-        <p style="font-size:.82rem;color:var(--t2);margin-bottom:12px">Digite o nome da criança para localizá-la, ver a equipe sorteada e registrar a presença automaticamente.</p>
-        <div class="sw" style="margin-bottom:8px"><input id="cred-busca" placeholder="Nome da criança…" oninput="credBuscar(this.value)" autocomplete="off"></div>
-        <div class="f"><label>Dia</label>
-          <select id="cred-dia" style="width:100%;padding:10px 12px;border:1.5px solid var(--bd);border-radius:var(--rs);font-family:'DM Sans';outline:none">
-            <option value="2026-07-17">Dia 1 — 17/jul</option>
-            <option value="2026-07-18">Dia 2 — 18/jul</option>
-            <option value="2026-07-19">Dia 3 — 19/jul</option>
-          </select>
-        </div>
-      </div></div>
-      <div id="cred-resultado"></div>
-      <div id="cred-lista"></div>
-    </div>
-  `;
+  D.cr = D.cr||[]; D.tr = D.tr||[]; D.pr = D.pr||[]; D.ge = D.ge||[]; D.gm = D.gm||[];
+
+  // Dia selecionado
+  if(!window._credDia) window._credDia = 'dia1';
+  // Busca
+  if(window._credBusca === undefined) window._credBusca = '';
+
+  const DIAS = [
+    {k:'dia1', n:'Dia 1', dt:'17/jul'},
+    {k:'dia2', n:'Dia 2', dt:'18/jul'},
+    {k:'dia3', n:'Dia 3', dt:'19/jul'},
+  ];
+
+  // Presenças do dia selecionado
+  const presencasDia = D.pr.filter(p => p.dia === window._credDia);
+  const presIds = new Set(presencasDia.map(p => p.crianca_id));
+
+  // Filtrar crianças
+  const busca = (window._credBusca||'').toLowerCase().trim();
+  const lista = D.cr.filter(cr => !busca || (cr.nome||'').toLowerCase().includes(busca));
+
+  const total   = D.cr.length;
+  const presentes = D.cr.filter(cr => presIds.has(cr.id)).length;
+  const pct     = total > 0 ? Math.round(presentes/total*100) : 0;
+
+  function getNomeTurma(id){ return D.tr.find(t=>t.id===id)?.nome||'—'; }
+  function getCorTurma(id){ return D.tr.find(t=>t.id===id)?.cor||'#534AB7'; }
+  function getEquipe(cid){
+    const m = D.gm.find(x=>x.crianca_id===cid);
+    if(!m) return null;
+    return D.ge.find(e=>e.id===m.equipe_id);
+  }
+
+  function alertaSaude(cr){
+    const itens = [];
+    if(cr.tem_alergia==='sim') itens.push({ico:'ti-alert-triangle',txt:cr.alergias||'Alergia',cor:'#A32D2D',bg:'#FCEBEB',tc:'#791F1F'});
+    if(cr.tem_restricao==='sim') itens.push({ico:'ti-medical-cross',txt:cr.restricoes||'Restrição médica',cor:'#854F0B',bg:'#FAEEDA',tc:'#633806'});
+    if(cr.medicamentos) itens.push({ico:'ti-pill',txt:'Medicamento',cor:'#185FA5',bg:'#E6F1FB',tc:'#0C447C'});
+    return itens;
+  }
+
+  let html = '';
+
+  // ── Seletor de dias ──────────────────────────
+  html += '<div style="display:flex;gap:7px;margin-bottom:14px">';
+  DIAS.forEach(d => {
+    const ativo = window._credDia === d.k;
+    html += '<div onclick="selCredDia(\''+d.k+'\')" style="flex:1;border:'+
+      (ativo?'2px solid #534AB7':'1px solid rgba(12,10,24,.1)')+
+      ';border-radius:10px;padding:9px 6px;text-align:center;cursor:pointer;transition:.15s;background:'+
+      (ativo?'#534AB7':'var(--bg)')+';">'
+      +'<div style="font-size:.72rem;font-weight:700;color:'+(ativo?'#EEEDFE':'var(--mid)')+'">'+d.n+'</div>'
+      +'<div style="font-size:.63rem;color:'+(ativo?'rgba(238,237,254,.6)':'var(--muted)')+'">'+d.dt+'</div>'
+      +'</div>';
+  });
+  html += '</div>';
+
+  // ── Barra de progresso ───────────────────────
+  html += '<div style="background:var(--surf);border:1px solid rgba(12,10,24,.07);border-radius:10px;padding:11px 14px;margin-bottom:12px">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">'
+    +'<span style="font-size:.78rem;color:var(--mid)">Presença '+DIAS.find(d=>d.k===window._credDia)?.n+'</span>'
+    +'<span style="font-size:.78rem;font-weight:700;color:#534AB7">'+presentes+' / '+total+'</span>'
+    +'</div>'
+    +'<div style="background:var(--pale);border-radius:4px;height:6px;overflow:hidden">'
+    +'<div style="background:#534AB7;width:'+pct+'%;height:6px;border-radius:4px;transition:.5s"></div>'
+    +'</div>'
+    +'<div style="font-size:.68rem;color:var(--muted);margin-top:4px">'+pct+'% presentes</div>'
+    +'</div>';
+
+  // ── Campo de busca ───────────────────────────
+  html += '<div style="position:relative;margin-bottom:12px">'
+    +'<i class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--muted)" aria-hidden="true"></i>'
+    +'<input id="cred-busca" type="text" placeholder="Buscar criança por nome..." value="'+((window._credBusca)||'')+'"'
+    +' oninput="window._credBusca=this.value;rCred()"'
+    +' style="width:100%;padding:10px 10px 10px 34px;border:1px solid rgba(12,10,24,.12);border-radius:9px;font-family:\'Outfit\';font-size:.86rem;outline:none;background:var(--bg);color:var(--ink);box-sizing:border-box">'
+    +'</div>';
+
+  // ── Lista de crianças ────────────────────────
+  if(!lista.length){
+    html += '<div class="empty"><div class="e">🔍</div><p>Nenhuma criança encontrada.</p></div>';
+  } else {
+    lista.forEach(cr => {
+      const presente = presIds.has(cr.id);
+      const presObj  = presencasDia.find(p=>p.crianca_id===cr.id);
+      const horario  = presObj?.hora_entrada || presObj?.created_at?.substring(11,16) || '';
+      const turma    = getNomeTurma(cr.turma_id);
+      const corT     = getCorTurma(cr.turma_id);
+      const equipe   = getEquipe(cr.id);
+      const alertas  = alertaSaude(cr);
+      const ini      = (cr.nome||'?').split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase();
+
+      html += '<div style="display:flex;align-items:flex-start;gap:10px;padding:11px 13px;margin-bottom:7px;'
+        +'background:'+(presente?'#f0fdf4':'var(--surf)')+';'
+        +'border:1px solid '+(presente?'#86efac':'rgba(12,10,24,.08)')+';'
+        +'border-radius:10px;transition:.15s">';
+
+      // Avatar
+      html += '<div style="width:36px;height:36px;border-radius:10px;background:'+(presente?'#15803d':'#534AB7')+';'
+        +'display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;'
+        +'color:'+(presente?'#f0fdf4':'#EEEDFE')+';flex-shrink:0">'+ini+'</div>';
+
+      // Info
+      html += '<div style="flex:1;min-width:0">';
+      html += '<div style="font-weight:600;font-size:.85rem;color:var(--ink)">'+cr.nome+'</div>';
+
+      // Turma + equipe
+      html += '<div style="display:flex;gap:5px;margin-top:3px;flex-wrap:wrap">';
+      if(cr.turma_id){
+        html += '<span style="background:'+corT+'20;color:'+corT+';padding:1px 7px;border-radius:4px;font-size:.63rem;font-weight:700">'+turma+'</span>';
+      }
+      if(equipe){
+        html += '<span style="background:'+equipe.cor+'20;color:'+equipe.cor+';padding:1px 7px;border-radius:4px;font-size:.63rem;font-weight:600">'+equipe.emoji+' '+equipe.nome+'</span>';
+      }
+      html += '</div>';
+
+      // Alertas de saúde
+      if(alertas.length){
+        html += '<div style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap">';
+        alertas.forEach(a => {
+          html += '<span style="display:inline-flex;align-items:center;gap:3px;background:'+a.bg
+            +';color:'+a.tc+';padding:2px 7px;border-radius:4px;font-size:.62rem;font-weight:600">'
+            +'<i class="ti '+a.ico+'" style="font-size:11px" aria-hidden="true"></i> '+a.txt+'</span>';
+        });
+        html += '</div>';
+      }
+
+      html += '</div>';
+
+      // Botão ou horário
+      html += '<div style="flex-shrink:0;text-align:right">';
+      if(presente){
+        html += '<div style="display:flex;align-items:center;gap:4px;color:#15803d;font-size:.72rem;font-weight:600">'
+          +'<i class="ti ti-check" style="font-size:15px" aria-hidden="true"></i>'+(horario||'')+'</div>';
+        html += '<button onclick="desfazerCheckin(\''+cr.id+'\')" style="margin-top:4px;background:none;border:1px solid #86efac;color:#15803d;border-radius:5px;padding:3px 8px;font-size:.62rem;cursor:pointer;font-family:\'Outfit\'">Desfazer</button>';
+      } else {
+        html += '<button onclick="fazerCheckin(\''+cr.id+'\')" style="background:#534AB7;border:none;color:#EEEDFE;border-radius:7px;padding:7px 11px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:\'Outfit\'">Check-in</button>';
+      }
+      html += '</div>';
+
+      html += '</div>';
+    });
+  }
+
+  document.getElementById('pg').innerHTML = (window._offlineBanner||'') + html;
 }
+
+function selCredDia(dia){
+  window._credDia = dia;
+  rCred();
+}
+
+async function fazerCheckin(criancaId){
+  const dia = window._credDia || 'dia1';
+  // Verificar se já tem
+  if(D.pr.find(p=>p.crianca_id===criancaId&&p.dia===dia)){
+    toast('Criança já registrada neste dia','err'); return;
+  }
+  const hora = new Date().toTimeString().substring(0,5);
+  try{
+    await dbI('presencas_ebf',{
+      crianca_id: criancaId,
+      dia,
+      hora_entrada: hora,
+      presente: true,
+    });
+    await rl('pr');
+    rCred();
+    const cr = D.cr.find(x=>x.id===criancaId);
+    toast('✓ '+(cr?.nome||'Criança')+' — check-in '+hora,'ok');
+  }catch(e){ toast('Erro: '+e.message,'err'); }
+}
+
+async function desfazerCheckin(criancaId){
+  const dia = window._credDia || 'dia1';
+  const p = D.pr.find(x=>x.crianca_id===criancaId&&x.dia===dia);
+  if(!p){ toast('Nenhum check-in encontrado','err'); return; }
+  confirm2('Desfazer check-in','Remover a presença desta criança?', async()=>{
+    try{
+      await dbD('presencas_ebf', p.id);
+      await rl('pr');
+      rCred();
+      toast('Check-in removido.','ok');
+    }catch(e){ toast('Erro: '+e.message,'err'); }
+  });
+}
+
 
 function credBuscar(b){
   const lista=document.getElementById('cred-lista');
@@ -2923,10 +3209,90 @@ function insCard(i){
     +'</div></div>'
     +'<div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;flex-shrink:0">'
     +'<button class="btn btn-gh btn-sm" onclick="verFichaIns(\'' +id+ '\')">Ver ficha</button>'
+    +'<button class="btn btn-p btn-sm" onclick="editarInscricao(\'' +id+ '\')">✏ Editar</button>'
     +(i.status==='pendente'?'<button class="btn btn-ok btn-sm" onclick="confirmarPagamento(\'' +id+ '\')">✓ Pago</button>':'')
     +(!i.importado?'<button class="btn btn-p btn-sm" onclick="importarInscricao(\'' +id+ '\')">↓ Importar</button>':'')
     +'<button class="btn btn-r btn-sm" onclick="dlInscricao(\'' +id+ '\')">✕</button>'
     +'</div></div></div></div>';
+}
+
+
+// Abrir modal de editar inscrição
+function editarInscricao(id){
+  const i = D.ins.find(x=>x.id===id);
+  if(!i){ toast('Inscrição não encontrada','err'); return; }
+
+  document.getElementById('ei-id').value      = id;
+  document.getElementById('ei-nome').value    = i.nome_crianca||i.nome||'';
+  document.getElementById('ei-nasc').value    = i.data_nasc||'';
+  document.getElementById('ei-sexo').value    = i.sexo||'';
+  document.getElementById('ei-pv').value      = i.primeira_vez||'nao';
+  document.getElementById('ei-resp').value    = i.nome_responsavel||i.responsavel||'';
+  document.getElementById('ei-tel').value     = i.whatsapp_responsavel||i.telefone||'';
+  document.getElementById('ei-paren').value   = i.parentesco||'';
+  document.getElementById('ei-email').value   = i.email||'';
+  document.getElementById('ei-status').value  = i.status||'pendente';
+  selEiPass(i.passaporte||'passaporte');
+  // Limpar justificativa
+  const justEl = document.getElementById('ei-justificativa');
+  if(justEl) justEl.value = '';
+  const justWrap = document.getElementById('ei-just-wrap');
+  if(justWrap) justWrap.style.display = 'none';
+  openM('m-edit-ins');
+}
+
+function toggleJustificativa(){
+  const status = document.getElementById('ei-status').value;
+  const wrap   = document.getElementById('ei-just-wrap');
+  if(wrap) wrap.style.display = (status !== 'confirmado') ? 'block' : 'none';
+}
+
+function selEiPass(p){
+  document.getElementById('ei-pass').value = p;
+  const cp = document.getElementById('ei-card-p');
+  const cg = document.getElementById('ei-card-g');
+  if(cp) cp.style.cssText = 'border:2px solid '+(p==='passaporte'?'var(--ink)':'var(--pale)')+';border-radius:9px;padding:11px 10px;text-align:center;cursor:pointer;background:'+(p==='passaporte'?'var(--ink)':'var(--bg)');
+  if(cg) cg.style.cssText = 'border:2px solid '+(p==='premium'?'#d97706':'var(--pale)')+';border-radius:9px;padding:11px 10px;text-align:center;cursor:pointer;background:'+(p==='premium'?'#fef3c7':'var(--bg)');
+  // Atualizar cor dos textos
+  const textoP = cp ? cp.querySelectorAll('div') : [];
+  textoP.forEach(el => { el.style.color = p==='passaporte' ? '#fff' : ''; });
+  const textoG = cg ? cg.querySelectorAll('div') : [];
+  textoG.forEach(el => { el.style.color = p==='premium' ? '#92400e' : ''; });
+}
+
+async function svEditarInscricao(){
+  const id     = document.getElementById('ei-id').value;
+  const nome   = document.getElementById('ei-nome').value.trim();
+  const resp   = document.getElementById('ei-resp').value.trim();
+  const tel    = document.getElementById('ei-tel').value.trim();
+  if(!nome){ toast('Informe o nome da criança','err'); return; }
+  if(!resp){ toast('Informe o nome do responsável','err'); return; }
+  const o = {
+    nome:          nome,
+    data_nasc:     document.getElementById('ei-nasc').value||null,
+    sexo:          document.getElementById('ei-sexo').value||null,
+    primeira_vez:  document.getElementById('ei-pv').value,
+    responsavel:   resp,
+    telefone:      tel,
+    parentesco:    document.getElementById('ei-paren').value||null,
+    email:         document.getElementById('ei-email').value.trim()||null,
+    passaporte:    document.getElementById('ei-pass').value,
+    status:        document.getElementById('ei-status').value,
+    observacoes:   (() => {
+      const just = document.getElementById('ei-justificativa')?.value.trim();
+      const prev = D.ins.find(x=>x.id===document.getElementById('ei-id').value)?.observacoes||'';
+      if(!just) return prev||null;
+      const ts = new Date().toLocaleDateString('pt-BR');
+      return (prev ? prev+'\n' : '') + '['+ts+'] '+just;
+    })(),
+  };
+  try{
+    await dbU('inscricoes_ebf', id, o);
+    await rl('ins');
+    closeM('m-edit-ins');
+    rInscricoes();
+    toast('✓ Inscrição atualizada!','ok');
+  }catch(e){ toast('Erro: '+e.message,'err'); }
 }
 
 
@@ -3055,33 +3421,42 @@ async function importarInscricao(id){
   const i = D.ins.find(x=>x.id===id);
   if(!i){ toast('Inscrição não encontrada','err'); return; }
   try{
-    // Verificar se já existe criança com esse nome
-    const jaExiste = D.cr.find(c=>(c.nome||'').toLowerCase().trim()===(i.nome_crianca||i.nome||'').toLowerCase().trim());
+    const nomeCrianca = i.nome_crianca||i.nome||'';
+    const nomeResp    = i.nome_responsavel||i.responsavel||'';
+    const telResp     = i.whatsapp_responsavel||i.telefone||'';
+
+    if(!nomeCrianca){ toast('Nome da criança não encontrado','err'); return; }
+    if(!nomeResp){ toast('Nome do responsável não encontrado','err'); return; }
+
+    // Verificar se já existe
+    const jaExiste = D.cr.find(c=>(c.nome||'').toLowerCase().trim()===nomeCrianca.toLowerCase().trim());
     if(jaExiste){ toast('Criança já existe no cadastro!','err'); return; }
-    // Calcular idade aproximada
+
+    // Calcular idade
     let idade = i.idade || null;
     if(!idade && i.data_nasc){
       const nasc = new Date(i.data_nasc);
       idade = Math.floor((new Date()-nasc)/31557600000);
     }
+
     await dbI('criancas_ebf',{
-      nome:        i.nome_crianca||i.nome,
-      responsavel: i.nome_responsavel,
-      telefone:    i.whatsapp_responsavel,
-      email:       i.email,
-      data_nasc:   i.data_nasc||null,
-      idade:       idade,
-      sexo:        i.sexo||null,
-      tem_alergia: i.tem_alergia||'nao',
-      alergias:    i.alergias||null,
+      nome:          nomeCrianca,
+      responsavel:   nomeResp,
+      telefone:      telResp||null,
+      email:         i.email||null,
+      data_nasc:     i.data_nasc||null,
+      idade:         idade,
+      sexo:          i.sexo||null,
+      tem_alergia:   i.tem_alergia||'nao',
+      alergias:      i.alergias||null,
       tem_restricao: i.tem_restricao||'nao',
-      restricoes:  i.restricoes||null,
-      medicamentos:i.medicamentos||null,
+      restricoes:    i.restricoes||null,
+      medicamentos:  i.medicamentos||null,
       autoriza_foto: i.autoriza_foto||'sim',
-      bairro:      i.bairro||null,
-      tipo:        'inscrito',
+      bairro:        i.bairro||null,
+      tipo:          'inscrito',
     });
-    // Marcar inscrição como importada
+
     await dbU('inscricoes_ebf', id, {importado: true});
     const ins = D.ins.find(x=>x.id===id);
     if(ins) ins.importado = true;
@@ -3158,7 +3533,7 @@ function rEstatisticas(){
   const conf=D.ins.filter(i=>i.status==='confirmado').length;
   const pass=D.ins.filter(i=>i.passaporte==='passaporte').length;
   const prem=D.ins.filter(i=>i.passaporte==='premium').length;
-  const receita=(pass*27)+(prem*47);
+  const receita=(pass*15)+(prem*47);
   const primVez=D.ins.filter(i=>i.primeira_vez==='sim').length;
   const comAlergia=D.ins.filter(i=>i.tem_alergia==='sim').length;
 
@@ -3201,7 +3576,7 @@ function rEstatisticas(){
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:.83rem">
         <div><div style="color:var(--t3);font-size:.68rem;margin-bottom:2px">Primeira vez na EBF</div><strong>${primVez} (${total>0?Math.round(primVez/total*100):0}%)</strong></div>
         <div><div style="color:var(--t3);font-size:.68rem;margin-bottom:2px">Com alergias</div><strong>${comAlergia}</strong></div>
-        <div><div style="color:var(--t3);font-size:.68rem;margin-bottom:2px">Receita total prevista</div><strong>R$ ${(total*27).toFixed(0)} — R$ ${((pass*27)+(prem*47)).toFixed(0)}</strong></div>
+        <div><div style="color:var(--t3);font-size:.68rem;margin-bottom:2px">Receita total prevista</div><strong>R$ ${(total*15).toFixed(0)} — R$ ${((pass*15)+(prem*47)).toFixed(0)}</strong></div>
         <div><div style="color:var(--t3);font-size:.68rem;margin-bottom:2px">Taxa de confirmação</div><strong>${total>0?Math.round(conf/total*100):0}%</strong></div>
       </div>
     </div></div>
@@ -3235,7 +3610,7 @@ async function rConfig() {
   if (data) data.forEach(r => cfgCache[r.chave] = r.valor); } catch(e){}
 
   const campos = [
-    { key:'passaporte_preco',  label:'Preço Passaporte EBF (R$)',     type:'number', placeholder:'27' },
+    { key:'passaporte_preco',  label:'Preço Passaporte EBF (R$)',     type:'number', placeholder:'15' },
     { key:'passaporte_desc',   label:'Descrição Passaporte EBF',      type:'text',   placeholder:'Acesso aos 3 dias, kit EBF...' },
     { key:'passaporte_link',   label:'Link de Checkout — Passaporte', type:'url',    placeholder:'https://...' },
     { key:'premium_preco',     label:'Preço Passaporte Premium (R$)', type:'number', placeholder:'47' },
