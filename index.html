@@ -1373,6 +1373,16 @@ function opEquipe(id){
 
 
 function editarEquipe(id){ opEquipe(id); }
+async function dlEquipe(id, nome){
+  confirm2('Excluir equipe','Excluir a equipe '+nome+' e todos os seus membros?', async()=>{
+    try{
+      await dbD('gincana_equipes', id);
+      await rl('g');
+      rGincana('equipes');
+      toast('Equipe '+nome+' excluída.','ok');
+    }catch(e){ toast('Erro: '+e.message,'err'); }
+  });
+}
 async function svEquipe(){
   const id    = document.getElementById('eq-id').value;
   const nome  = document.getElementById('eq-nome').value.trim();
@@ -2891,7 +2901,7 @@ function gContent(ab){
   if(ab==='equipes'){
     const semEq=D.cr.filter(c=>!D.gm.some(m=>m.crianca_id===c.id));
     return `<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><button class="btn btn-gh btn-sm" onclick="sortearEquipes()">🎲 Sortear ${semEq.length} sem equipe</button></div>`+D.ge.map(e=>{const mb=D.gm.filter(m=>m.equipe_id===e.id);
-    return`<div class="eq-card"><div class="eq-top" style="background:${e.cor}"><div><div class="eq-e">${e.emoji}</div><div class="eq-n">${e.nome}</div><div class="eq-s">${e.slogan}</div></div><div class="eq-pts"><div class="num">${e.pontos}</div><div class="lbl">pontos</div><button onclick="editarEquipe('${e.id}')" style="background:rgba(255,255,255,.18);border:none;color:#fff;border-radius:5px;padding:3px 8px;font-size:.65rem;font-weight:600;cursor:pointer;margin-top:4px;font-family:'DM Sans'">Editar</button></div></div><div class="eq-bot"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><span style="font-size:.72rem;color:var(--t3);font-weight:600">${mb.length} membro(s)</span><button class="btn btn-p btn-sm" onclick="opGM('${e.id}','${e.nome}')">Adicionar</button></div><div>${mb.length===0?`<span style="font-size:.75rem;color:var(--t3)">Nenhum membro</span>`:mb.map(m=>{const c=D.cr.find(x=>x.id===m.crianca_id);const nm=c?.nome||m.nome_manual||'?';return`<span class="mp">${nm.split(' ')[0]}<button onclick="dlGM('${m.id}')">✕</button></span>`;}).join('')}</div></div></div>`;
+    return`<div class="eq-card"><div class="eq-top" style="background:${e.cor}"><div><div class="eq-e">${e.emoji}</div><div class="eq-n">${e.nome}</div><div class="eq-s">${e.slogan}</div></div><div class="eq-pts"><div class="num">${e.pontos}</div><div class="lbl">pontos</div><div style="display:flex;gap:4px;margin-top:4px"><button onclick="editarEquipe('${e.id}')" style="background:rgba(255,255,255,.18);border:none;color:#fff;border-radius:5px;padding:3px 8px;font-size:.65rem;font-weight:600;cursor:pointer;font-family:'DM Sans'">Editar</button><button onclick="dlEquipe('${e.id}','${e.nome}')" style="background:rgba(255,0,0,.3);border:none;color:#fff;border-radius:5px;padding:3px 8px;font-size:.65rem;font-weight:600;cursor:pointer;font-family:'DM Sans'">✕ Excluir</button></div></div></div><div class="eq-bot"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><span style="font-size:.72rem;color:var(--t3);font-weight:600">${mb.length} membro(s)</span><div style="display:flex;gap:5px"><button class="btn btn-p btn-sm" onclick="opGM('${e.id}','${e.nome}')">+ Adicionar</button>${mb.length>0?`<button class="btn btn-r btn-sm" onclick="limparEquipe('${e.id}','${e.nome}')">✕ Limpar</button>`:''}</div></div><div>${mb.length===0?`<span style="font-size:.75rem;color:var(--t3)">Nenhum membro</span>`:mb.map(m=>{const c=D.cr.find(x=>x.id===m.crianca_id);const nm=c?.nome||m.nome_manual||'?';return`<span class="mp">${nm.split(' ')[0]}<button onclick="dlGM('${m.id}')">✕</button></span>`;}).join('')}</div></div></div>`;
     }).join('');
   }
   if(ab==='provas'){
@@ -2917,7 +2927,8 @@ function gSwTab(t){document.getElementById('gt-cad').style.display=t==='cad'?'bl
 function gFilt(){const eid=document.getElementById('gm-eid').value,b=document.getElementById('gm-b').value.toLowerCase(),ja=D.gm.filter(m=>m.equipe_id===eid).map(m=>m.crianca_id).filter(Boolean),l=D.cr.filter(c=>!ja.includes(c.id)&&(c.nome||'').toLowerCase().includes(b)).slice(0,20);const el=document.getElementById('gm-l');el.innerHTML=l.length===0?`<div style="padding:13px;text-align:center;color:var(--t3);font-size:.8rem">Nenhuma encontrada</div>`:l.map(c=>`<div style="padding:9px 12px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between" onclick="gAddCad('${c.id}')"><span style="font-size:.83rem">${c.nome}</span><button class="btn btn-p btn-sm">Adicionar</button></div>`).join('');}
 async function gAddCad(cid){const eid=document.getElementById('gm-eid').value;try{await dbI('gincana_membros',{equipe_id:eid,crianca_id:cid});await rl('g');gFilt();rGincana('equipes');closeM('m-gm');toast('Adicionado!','ok');}catch(e){if(e.code==='23505')toast('Já está nesta equipe','err');else toast('Erro: '+e.message,'err');}}
 async function gAddMan(){const eid=document.getElementById('gm-eid').value,nm=document.getElementById('gm-mn').value.trim();if(!nm){toast('Digite o nome','err');return;}try{await dbI('gincana_membros',{equipe_id:eid,nome_manual:nm});await rl('g');closeM('m-gm');rGincana('equipes');toast('Adicionado!','ok');}catch(e){toast('Erro: '+e.message,'err');}}
-function dlGM(id){confirm2('Remover','Remover da equipe?',async()=>{await dbD('gincana_membros',id);await rl('g');rGincana('equipes');toast('Removido.','ok');});}
+function dlGM(id){confirm2('Remover','Remover da equipe?',async()=>{await dbD('gincana_membros',id);D.gm=D.gm.filter(m=>m.id!==id);rGincana('equipes');toast('Removido.','ok');rl('gm');});}
+async function limparEquipe(eqId,nome){confirm2('Limpar equipe','Remover todas as crianças de '+nome+'?',async()=>{try{const mb=D.gm.filter(m=>m.equipe_id===eqId);for(const m of mb)await dbD('gincana_membros',m.id);D.gm=D.gm.filter(m=>m.equipe_id!==eqId);rGincana('equipes');toast('Equipe '+nome+' limpa.','ok');rl('gm');}catch(e){toast('Erro: '+e.message,'err');}});}
 function opPontos(){const sel=document.getElementById('pt-e');sel.innerHTML=D.ge.map(e=>`<option value="${e.id}">${e.emoji} ${e.nome}</option>`).join('');document.getElementById('pt-p').value='';document.getElementById('pt-m').value='';openM('m-pt-g');}
 async function svPontos(){const eid=document.getElementById('pt-e').value,pts=parseInt(document.getElementById('pt-p').value),mot=document.getElementById('pt-m').value.trim(),dia=document.getElementById('pt-d').value;if(!pts||!mot){toast('Preencha pontos e motivo','err');return;}try{await dbI('gincana_pontuacoes',{equipe_id:eid,pontos:pts,motivo:mot,dia});const eq=D.ge.find(e=>e.id===eid);await dbU('gincana_equipes',eid,{pontos:(eq?.pontos||0)+pts});await rl('g');closeM('m-pt-g');rGincana('ranking');toast(`+${pts} pontos!`,'ok');}catch(e){toast('Erro: '+e.message,'err');}}
 async function dlPontuacao(id,eid,pts){confirm2('Remover',`Remover +${pts}pts?`,async()=>{await dbD('gincana_pontuacoes',id);const eq=D.ge.find(e=>e.id===eid);await dbU('gincana_equipes',eid,{pontos:Math.max(0,(eq?.pontos||0)-pts)});await rl('g');rGincana('hist');toast('Removido.','ok');});}
