@@ -979,10 +979,10 @@ html,body{height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color
 
 <!-- Modal Nova Prova -->
 <div class="mw" id="m-pv"><div class="modal">
-  <div class="mh"><h3>Nova Prova</h3><button class="mc" onclick="closeM('m-pv')">✕</button></div>
+  <div class="mh"><h3>Nova Prova / Atividade</h3><button class="mc" onclick="closeM('m-pv')">✕</button></div>
   <div class="mb">
     <div class="fr">
-      <div class="f"><label>Nome *</label><input id="pv-n" placeholder="Ex: Corrida bíblica"></div>
+      <div class="f"><label>Nome *</label><input id="pv-n" placeholder="Ex: Torta na Cara"></div>
       <div class="f"><label>Dia</label>
         <select id="pv-d" style="width:100%;padding:10px 12px;border:1px solid rgba(12,10,24,.12);border-radius:var(--rs);font-family:'Outfit';outline:none;background:var(--bg);color:var(--ink)">
           <option value="dia1">Dia 1</option><option value="dia2">Dia 2</option><option value="dia3">Dia 3</option>
@@ -990,9 +990,39 @@ html,body{height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color
       </div>
     </div>
     <div class="f"><label>Descrição</label><textarea id="pv-dc" placeholder="Como funciona…"></textarea></div>
-    <div style="font-size:.7rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Pontos por colocação</div>
-    <div class="fr">
-      <div class="f"><label>1º lugar</label><input id="pv-p1" type="number" value="100"></div>
+
+    <div style="font-size:.7rem;font-weight:700;color:var(--mid);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Tipo de pontuação</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.83rem;padding:7px 12px;border:1px solid rgba(12,10,24,.12);border-radius:7px;flex:1">
+        <input type="radio" name="pv-tipo" value="acerto" checked onchange="toggleTipoProva(this.value)"> Por acerto
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.83rem;padding:7px 12px;border:1px solid rgba(12,10,24,.12);border-radius:7px;flex:1">
+        <input type="radio" name="pv-tipo" value="colocacao" onchange="toggleTipoProva(this.value)"> Por colocação
+      </label>
+    </div>
+
+    <!-- Por acerto -->
+    <div id="pv-acerto-wrap">
+      <div class="fr">
+        <div class="f"><label>Pontos por acerto</label><input id="pv-pac" type="number" value="20" placeholder="Ex: 20"></div>
+        <div class="f"><label>Qtd. máx. de acertos</label><input id="pv-max" type="number" value="" placeholder="Ilimitado"></div>
+      </div>
+    </div>
+
+    <!-- Por colocação -->
+    <div id="pv-coloc-wrap" style="display:none">
+      <div class="fr">
+        <div class="f"><label>1º lugar</label><input id="pv-p1" type="number" value="100" placeholder="100"></div>
+        <div class="f"><label>2º lugar</label><input id="pv-p2" type="number" value="70" placeholder="70"></div>
+      </div>
+    </div>
+
+  </div>
+  <div class="mf">
+    <button class="btn btn-gh" onclick="closeM('m-pv')">Cancelar</button>
+    <button class="btn btn-p" onclick="svProva()">Salvar</button>
+  </div>
+</div></div> id="pv-p1" type="number" value="100"></div>
       <div class="f"><label>2º lugar</label><input id="pv-p2" type="number" value="70"></div>
     </div>
     <div class="fr">
@@ -2930,10 +2960,114 @@ function opPontos(){const sel=document.getElementById('pt-e');sel.innerHTML=D.ge
 async function svPontos(){const eid=document.getElementById('pt-e').value,pts=parseInt(document.getElementById('pt-p').value),mot=document.getElementById('pt-m').value.trim(),dia=document.getElementById('pt-d').value;if(!pts||!mot){toast('Preencha pontos e motivo','err');return;}try{await dbI('gincana_pontuacoes',{equipe_id:eid,pontos:pts,motivo:mot,dia});const eq=D.ge.find(e=>e.id===eid);await dbU('gincana_equipes',eid,{pontos:(eq?.pontos||0)+pts});await rl('g');closeM('m-pt-g');rGincana('ranking');toast(`+${pts} pontos!`,'ok');}catch(e){toast('Erro: '+e.message,'err');}}
 async function dlPontuacao(id,eid,pts){confirm2('Remover',`Remover +${pts}pts?`,async()=>{await dbD('gincana_pontuacoes',id);const eq=D.ge.find(e=>e.id===eid);await dbU('gincana_equipes',eid,{pontos:Math.max(0,(eq?.pontos||0)-pts)});await rl('g');rGincana('hist');toast('Removido.','ok');});}
 function opProva(){['pv-n','pv-dc'].forEach(x=>document.getElementById(x).value='');document.getElementById('pv-p1').value=100;document.getElementById('pv-p2').value=70;document.getElementById('pv-p3').value=40;document.getElementById('pv-p4').value=10;openM('m-pv');}
-async function svProva(){const o={nome:document.getElementById('pv-n').value.trim(),descricao:document.getElementById('pv-dc').value.trim(),dia:document.getElementById('pv-d').value,pontos_1:parseInt(document.getElementById('pv-p1').value)||0,pontos_2:parseInt(document.getElementById('pv-p2').value)||0,pontos_3:parseInt(document.getElementById('pv-p3').value)||0,pontos_4:parseInt(document.getElementById('pv-p4').value)||0,status:'pendente'};if(!o.nome){toast('Nome obrigatório','err');return;}try{await dbI('gincana_provas',o);await rl('g');closeM('m-pv');rGincana('provas');toast('Prova criada!','ok');}catch(e){toast('Erro: '+e.message,'err');}}
+function toggleTipoProva(v){
+  document.getElementById('pv-acerto-wrap').style.display = v==='acerto'?'block':'none';
+  document.getElementById('pv-coloc-wrap').style.display  = v==='colocacao'?'block':'none';
+}
+
+async function svProva(){
+  const nome = document.getElementById('pv-n').value.trim();
+  if(!nome){ toast('Nome obrigatório','err'); return; }
+  const tipo = document.querySelector('input[name="pv-tipo"]:checked')?.value || 'acerto';
+  const o = {
+    nome,
+    descricao: document.getElementById('pv-dc').value.trim(),
+    dia:       document.getElementById('pv-d').value,
+    tipo_pontuacao: tipo,
+    pontos_1: tipo==='acerto'
+      ? parseInt(document.getElementById('pv-pac').value)||20
+      : parseInt(document.getElementById('pv-p1').value)||100,
+    pontos_2: tipo==='acerto'
+      ? parseInt(document.getElementById('pv-pac').value)||20
+      : parseInt(document.getElementById('pv-p2').value)||70,
+    pontos_3: 0,
+    pontos_4: 0,
+    status: 'pendente',
+  };
+  try{
+    await dbI('gincana_provas', o);
+    await rl('g');
+    closeM('m-pv');
+    rGincana('provas');
+    toast('Prova criada!','ok');
+  }catch(e){ toast('Erro: '+e.message,'err'); }
+}
 function dlProva(id){confirm2('Excluir','Remover esta prova?',async()=>{await dbD('gincana_provas',id);await rl('g');rGincana('provas');toast('Removida.','ok');});}
-function opRes(pid,pnm){document.getElementById('m-rs-t').textContent=`Resultado: ${pnm}`;const pv=D.gp.find(p=>p.id===pid),pp=[0,pv?.pontos_1||0,pv?.pontos_2||0,pv?.pontos_3||0,pv?.pontos_4||0];document.getElementById('m-rs-b').innerHTML=`<input type="hidden" id="rs-pid" value="${pid}">${D.ge.map(e=>`<div style="display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--bd)"><span style="font-size:1rem">${e.emoji}</span><span style="flex:1;font-weight:600;color:${e.cor};font-size:.85rem">${e.nome}</span><select id="rp-${e.id}" style="padding:7px 9px;border:1.5px solid var(--bd);border-radius:6px;font-family:'DM Sans';outline:none;font-size:.78rem"><option value="">— Lugar —</option><option value="1">1º lugar (+${pp[1]}pts)</option><option value="2">2º lugar (+${pp[2]}pts)</option><option value="3">3º lugar (+${pp[3]}pts)</option><option value="4">4º lugar (+${pp[4]}pts)</option></select></div>`).join('')}`;openM('m-rs');}
-async function svResultado(){const pid=document.getElementById('rs-pid').value,pv=D.gp.find(p=>p.id===pid),pp=[0,pv?.pontos_1||0,pv?.pontos_2||0,pv?.pontos_3||0,pv?.pontos_4||0],rs=[];for(const e of D.ge){const v=document.getElementById(`rp-${e.id}`)?.value;if(v)rs.push({equipe_id:e.id,posicao:parseInt(v),pontos_ganhos:pp[parseInt(v)]});}if(!rs.length){toast('Informe ao menos uma colocação','err');return;}try{for(const r of rs){await SB.from('gincana_resultados').upsert({prova_id:pid,...r},{onConflict:'prova_id,equipe_id'});await dbI('gincana_pontuacoes',{equipe_id:r.equipe_id,pontos:r.pontos_ganhos,motivo:pv.nome,dia:pv.dia});const eq=D.ge.find(e=>e.id===r.equipe_id);await dbU('gincana_equipes',r.equipe_id,{pontos:(eq?.pontos||0)+r.pontos_ganhos});}await dbU('gincana_provas',pid,{status:'finalizada'});await rl('g');closeM('m-rs');rGincana('provas');toast('Resultado salvo!','ok');}catch(e){toast('Erro: '+e.message,'err');}}
+function opRes(pid,pnm){
+  const pv = D.gp.find(p=>p.id===pid);
+  const tipo = pv?.tipo_pontuacao || 'colocacao';
+  document.getElementById('m-rs-t').textContent = 'Resultado: '+pnm;
+
+  let html = '<input type="hidden" id="rs-pid" value="'+pid+'">';
+
+  if(tipo === 'acerto'){
+    const ptAcerto = pv?.pontos_1 || 20;
+    html += '<p style="font-size:.78rem;color:var(--mid);margin-bottom:10px">Informe o número de acertos de cada equipe ('+ptAcerto+' pts/acerto)</p>';
+    html += D.ge.map(e =>
+      '<div style="display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--bd)">'
+      +'<span style="font-size:1rem">'+e.emoji+'</span>'
+      +'<span style="flex:1;font-weight:600;color:'+e.cor+';font-size:.85rem">'+e.nome+'</span>'
+      +'<input id="rp-'+e.id+'" type="number" min="0" value="0" placeholder="0"'
+      +' style="width:60px;padding:7px 9px;border:1.5px solid var(--bd);border-radius:6px;font-family:\'DM Sans\';outline:none;font-size:.85rem;text-align:center">'
+      +'<span style="font-size:.7rem;color:var(--mid)">acertos</span>'
+      +'</div>'
+    ).join('');
+  } else {
+    const pp = [0, pv?.pontos_1||100, pv?.pontos_2||70, pv?.pontos_3||40, pv?.pontos_4||10];
+    html += D.ge.map(e =>
+      '<div style="display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--bd)">'
+      +'<span style="font-size:1rem">'+e.emoji+'</span>'
+      +'<span style="flex:1;font-weight:600;color:'+e.cor+';font-size:.85rem">'+e.nome+'</span>'
+      +'<select id="rp-'+e.id+'" style="padding:7px 9px;border:1.5px solid var(--bd);border-radius:6px;font-family:\'DM Sans\';outline:none;font-size:.78rem">'
+      +'<option value="">— Lugar —</option>'
+      +'<option value="1">1º lugar (+'+pp[1]+'pts)</option>'
+      +'<option value="2">2º lugar (+'+pp[2]+'pts)</option>'
+      +'</select></div>'
+    ).join('');
+  }
+
+  document.getElementById('m-rs-b').innerHTML = html;
+  openM('m-rs');
+}
+async function svResultado(){
+  const pid = document.getElementById('rs-pid').value;
+  const pv  = D.gp.find(p=>p.id===pid);
+  const tipo = pv?.tipo_pontuacao || 'colocacao';
+  const rs = [];
+
+  if(tipo === 'acerto'){
+    const ptAcerto = pv?.pontos_1 || 20;
+    for(const e of D.ge){
+      const acertos = parseInt(document.getElementById('rp-'+e.id)?.value)||0;
+      if(acertos > 0) rs.push({equipe_id:e.id, posicao:1, pontos_ganhos: acertos * ptAcerto, acertos});
+    }
+    if(!rs.length){ toast('Informe ao menos um acerto','err'); return; }
+  } else {
+    const pp = [0, pv?.pontos_1||100, pv?.pontos_2||70, pv?.pontos_3||40, pv?.pontos_4||10];
+    for(const e of D.ge){
+      const v = document.getElementById('rp-'+e.id)?.value;
+      if(v) rs.push({equipe_id:e.id, posicao:parseInt(v), pontos_ganhos:pp[parseInt(v)]});
+    }
+    if(!rs.length){ toast('Informe ao menos uma colocação','err'); return; }
+  }
+
+  try{
+    for(const r of rs){
+      await SB.from('gincana_resultados').upsert({prova_id:pid,...r},{onConflict:'prova_id,equipe_id'});
+      const motivo = tipo==='acerto'
+        ? pv.nome+' ('+r.acertos+' acerto'+(r.acertos>1?'s':'')+')'
+        : pv.nome+' ('+r.posicao+'º lugar)';
+      await dbI('gincana_pontuacoes',{equipe_id:r.equipe_id, pontos:r.pontos_ganhos, motivo, dia:pv.dia});
+      const eq = D.ge.find(e=>e.id===r.equipe_id);
+      await dbU('gincana_equipes',r.equipe_id,{pontos:(eq?.pontos||0)+r.pontos_ganhos});
+    }
+    await dbU('gincana_provas',pid,{status:'finalizada'});
+    await rl('g');
+    closeM('m-rs');
+    rGincana('provas');
+    toast('Resultado salvo!','ok');
+  }catch(e){ toast('Erro: '+e.message,'err'); }
+}
 
 // ── PROGRAMAÇÃO ──────────────────────────────
 function rProg(ab='dia1'){document.getElementById('pg').innerHTML=`<div class="tab-bar"><button class="tb2 ${ab==='dia1'?'on':''}" onclick="rProg('dia1')">Dia 1</button><button class="tb2 ${ab==='dia2'?'on':''}" onclick="rProg('dia2')">Dia 2</button><button class="tb2 ${ab==='dia3'?'on':''}" onclick="rProg('dia3')">Dia 3</button></div>${pCont(ab)}`;}
