@@ -1301,7 +1301,8 @@ function confirm2(titulo,msg,cb){
 }
 
 
-async function dbG(tb,f={}){let q=SB.from(tb).select('*');for(const[k,v]of Object.entries(f))q=q.eq(k,v);const{data,error}=await q.order('created_at',{ascending:false});if(error){console.error(tb,error);return[];}return data||[];}
+async function dbG(tb,f={}){let q=SB.from(tb).select('*');for(const[k,v]of Object.entries(f))q=q.eq(k,v);const{data,error}=await q.order('created_at',{ascending:false});if(error){console.error('dbG erro em '+tb+':',error.message);return[];}return data||[];}
+
 async function dbI(tb,o){const{data,error}=await SB.from(tb).insert(o).select().single();if(error)throw error;return data;}
 async function dbU(tb,id,o){const{data,error}=await SB.from(tb).update(o).eq('id',id).select().single();if(error)throw error;return data;}
 async function dbD(tb,id){const{error}=await SB.from(tb).delete().eq('id',id);if(error)throw error;}
@@ -1722,7 +1723,13 @@ function tickCD(){
 }
 
 async function loadAll(){
-  function safe(p){ return p.catch(e=>{ console.warn('loadAll erro:',e); return []; }); }
+  // Timeout de 8s por query — se não responder, retorna vazio
+  function safe(p){
+    return Promise.race([
+      p.catch(()=>[]),
+      new Promise(r=>setTimeout(()=>r([]),8000))
+    ]);
+  }
 
   const [cr,tr,eq,pr,av,ge,gm,gp,gr,gpt,ins,cl,pt,esc,cred,frec,fdes] = await Promise.all([
     safe(dbG('criancas_ebf')),
