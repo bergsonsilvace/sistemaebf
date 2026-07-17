@@ -1592,12 +1592,8 @@ async function startApp(){
   document.getElementById('urol').textContent=CU.perfil||'Equipe';
   applyPerfilAccess();
   tickCD(); setInterval(tickCD,60000);
-  // Mostrar loading enquanto carrega dados
-  document.getElementById('pg').innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;gap:12px"><div style="width:32px;height:32px;border:3px solid var(--pale);border-top-color:var(--p);border-radius:50%;animation:spin .7s linear infinite"></div><p style="font-size:.82rem;color:var(--muted)">Carregando dados...</p></div>';
-  // Carregar todos os dados primeiro
-  await loadAll();
-  // Só então renderizar a tela
   go('dashboard');
+  loadAll().then(()=>{ go(CP||'dashboard'); });
   checkPwaOnLogin();
 }
 
@@ -1723,46 +1719,42 @@ function tickCD(){
 }
 
 async function loadAll(){
-  function upd(txt){
-    const pg = document.getElementById('pg');
-    if(pg) pg.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;gap:8px">'
-      + '<div style="width:28px;height:28px;border:3px solid var(--pale);border-top-color:var(--p);border-radius:50%;animation:spin .7s linear infinite"></div>'
-      + '<p style="font-size:.78rem;color:var(--muted)">'+txt+'</p></div>';
-  }
+  const safe = p => Promise.race([
+    p.catch(()=>[]),
+    new Promise(r=>setTimeout(()=>r([]),15000))
+  ]);
 
-  async function q(tb, promise){
-    try{
-      const r = await (promise || SB.from(tb).select('*').order('created_at',{ascending:false}));
-      if(r && r.error){ console.warn(tb, r.error.message); return []; }
-      return (r && r.data) ? r.data : [];
-    }catch(e){ console.warn(tb, e.message); return []; }
-  }
+  const [cr,tr,eq,pr,av,ge,gm,gp,gr,gpt,ins,cl,pt,esc,cred,frec,fdes] = await Promise.all([
+    safe(dbG('criancas_ebf')),
+    safe(Promise.resolve({data:[]})),
+    safe(dbG('equipe_ebf')),
+    safe(dbG('presencas_ebf')),
+    safe(dbG('avisos_ebf')),
+    safe(dbG('gincana_equipes')),
+    safe(dbG('gincana_membros')),
+    safe(dbG('gincana_provas')),
+    safe(dbG('gincana_resultados')),
+    safe(dbG('gincana_pontuacoes')),
+    safe(dbG('inscricoes_ebf')),
+    safe(SB.from('checklist_ebf').select('*').order('fase').order('ordem').then(r=>r.data||[])),
+    safe(SB.from('projeto_tarefas').select('*').order('fase').order('ordem').then(r=>r.data||[])),
+    safe(SB.from('escala_ebf').select('*').order('dia').order('setor').then(r=>r.data||[])),
+    safe(SB.from('credenciamento_ebf').select('*').then(r=>r.data||[])),
+    safe(SB.from('financeiro_receitas').select('*').order('created_at',{ascending:false}).then(r=>r.data||[])),
+    safe(SB.from('financeiro_despesas').select('*').order('created_at',{ascending:false}).then(r=>r.data||[])),
+  ]);
 
-  upd('Carregando crianças...');   D.cr   = await q('criancas_ebf');
-  upd('Carregando inscrições...');  D.ins  = await q('inscricoes_ebf');
-  upd('Carregando equipes...');     D.ge   = await q('gincana_equipes');
-                                    D.gm   = await q('gincana_membros');
-                                    D.gpt  = await q('gincana_pontuacoes');
-                                    D.gp   = await q('gincana_provas');
-                                    D.gr   = await q('gincana_resultados');
-  upd('Carregando voluntários...');  D.eq  = await q('equipe_ebf');
-  upd('Carregando checkins...');    D.cred = await q('credenciamento_ebf');
-  upd('Carregando financeiro...');  D.frec = await q('financeiro_receitas');
-                                    D.fdes = await q('financeiro_despesas');
-  upd('Carregando checklist...');   D.cl   = await q('checklist_ebf',   SB.from('checklist_ebf').select('*').order('fase').order('ordem'));
-                                    D.pt   = await q('projeto_tarefas', SB.from('projeto_tarefas').select('*').order('fase').order('ordem'));
-                                    D.esc  = await q('escala_ebf',      SB.from('escala_ebf').select('*').order('dia').order('setor'));
-                                    D.av   = await q('avisos_ebf');
-                                    D.pr   = await q('presencas_ebf');
-                                    D.tr   = [];
+  D={cr:cr||[],tr:[],eq:eq||[],pr:pr||[],av:av||[],
+     ge:ge||[],gm:gm||[],gp:gp||[],gr:gr||[],gpt:gpt||[],
+     cl:cl||[],ins:ins||[],pt:pt||[],esc:esc||[],frec:frec||[],fdes:fdes||[],cred:cred||[]};
 
-  const nbI = document.getElementById('nb-i');
-  const nbC = document.getElementById('nb-c');
-  const nbE = document.getElementById('nb-e');
-  const pend = (D.ins||[]).filter(i=>i.status==='pendente').length;
-  if(nbI) nbI.textContent = pend>0?pend:'';
-  if(nbC) nbC.textContent = (D.cr||[]).length||'';
-  if(nbE) nbE.textContent = (D.eq||[]).length||'';
+  const nbI=document.getElementById('nb-i');
+  const nbC=document.getElementById('nb-c');
+  const nbE=document.getElementById('nb-e');
+  const pend=(D.ins||[]).filter(i=>i.status==='pendente').length;
+  if(nbI) nbI.textContent=pend>0?pend:'';
+  if(nbC) nbC.textContent=(D.cr||[]).length||'';
+  if(nbE) nbE.textContent=(D.eq||[]).length||'';
 }
 
 
