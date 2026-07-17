@@ -964,6 +964,7 @@ html,body{height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color
   <div class="mh"><h3>Lançar Pontos</h3><button class="mc" onclick="closeM('m-pt-g')">✕</button></div>
   <div class="mb">
     <div class="f"><label>Equipe *</label><select id="pt-e" style="width:100%;padding:10px 12px;border:1px solid rgba(12,10,24,.12);border-radius:var(--rs);font-family:'Outfit';outline:none;background:var(--bg);color:var(--ink)"></select></div>
+    <div class="f"><label>Prova / Atividade</label><select id="pt-pv" style="width:100%;padding:10px 12px;border:1px solid rgba(12,10,24,.12);border-radius:var(--rs);font-family:'Outfit';outline:none;background:var(--bg);color:var(--ink)"></select></div>
     <div class="fr">
       <div class="f"><label>Pontos *</label><input id="pt-p" type="number" placeholder="100"></div>
       <div class="f"><label>Dia</label>
@@ -2925,13 +2926,36 @@ function gContent(ab){
   }
   if(ab==='provas'){
     const dias=[['dia1','Dia 1 — 17/jul'],['dia2','Dia 2 — 18/jul'],['dia3','Dia 3 — 19/jul']];
-    return`<button class="btn btn-p btn-sm btn-full" style="margin-bottom:12px" onclick="opProva()">+ Nova prova</button>
-    ${dias.map(([d,lb])=>{const ps=D.gp.filter(p=>p.dia===d);
-    return`<div class="sec-lbl">${lb}</div>
-    ${ps.length===0?`<div class="card" style="margin-bottom:8px"><div class="cb"><p style="color:var(--t3);font-size:.8rem">Nenhuma prova.</p></div></div>`
-    :ps.map(p=>{const res=D.gr.filter(r=>r.prova_id===p.id),fin=p.status==='finalizada';
-    return`<div class="card" style="margin-bottom:7px"><div class="cb"><div style="display:flex;justify-content:space-between;gap:8px"><div style="flex:1"><div style="font-weight:600;font-size:.85rem">${p.nome}</div>${p.descricao?`<div style="font-size:.72rem;color:var(--t3);margin-top:1px">${p.descricao}</div>`:''}<div style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap"><span class="badge by">1º ${p.pontos_1}pts</span><span class="badge bk">2º ${p.pontos_2}pts</span><span class="badge bk">3º ${p.pontos_3}pts</span></div>${fin&&res.length>0?`<div style="margin-top:5px;font-size:.7rem;color:var(--t3)">${res.sort((a,b)=>a.posicao-b.posicao).map(r=>{const eq=D.ge.find(e=>e.id===r.equipe_id);return`${['🥇','🥈','🥉','4️⃣'][r.posicao-1]} ${eq?.nome||'?'}`;}).join(' · ')}</div>`:''}</div><div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end"><span class="badge ${fin?'bg':'by'}">${fin?'Finalizada':'Pendente'}</span>${!fin?`<button class="btn btn-g btn-sm" onclick="opRes('${p.id}','${p.nome.replace(/'/g,"\\'")}')">Resultado</button>`:''}<button class="btn btn-r btn-sm" onclick="dlProva('${p.id}')">Excluir</button></div></div></div></div>`;
-    }).join('')}`;}).join('')}`;
+    let h='<button class="btn btn-p btn-sm btn-full" style="margin-bottom:12px" onclick="opProva()">+ Nova prova</button>';
+    dias.forEach(([d,lb])=>{
+      const ps=D.gp.filter(p=>p.dia===d);
+      h+='<div class="sec-lbl" style="margin-bottom:6px">'+lb+'</div>';
+      if(!ps.length){
+        h+='<div class="card" style="margin-bottom:8px"><div class="cb"><p style="color:var(--t3);font-size:.8rem">Nenhuma prova.</p></div></div>';
+      } else {
+        ps.forEach(p=>{
+          const fin=p.status==='finalizada';
+          const tipo=p.tipo_pontuacao||'colocacao';
+          const pts=tipo==='acerto'?p.pontos_1+'pts/acerto':p.pontos_1+'pts / '+p.pontos_2+'pts';
+          h+='<div class="card" style="margin-bottom:7px"><div class="cb">'
+           +'<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">'
+           +'<div style="flex:1">'
+           +'<div style="font-weight:600;font-size:.85rem">'+p.nome+'</div>'
+           +(p.descricao?'<div style="font-size:.72rem;color:var(--t3);margin-top:1px">'+p.descricao+'</div>':'')
+           +'<div style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap">'
+           +'<span class="badge by">'+tipo+'</span>'
+           +'<span class="badge bk">'+pts+'</span>'
+           +'</div>'
+           +'</div>'
+           +'<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0">'
+           +'<span class="badge '+(fin?'bg':'by')+'">'+(fin?'Finalizada':'Pendente')+'</span>'
+           +(!fin?'<button class="btn btn-g btn-sm" data-id="'+p.id+'" data-nm="'+encodeURIComponent(p.nome)+'" onclick="opRes(this.dataset.id,decodeURIComponent(this.dataset.nm))">Resultado</button>':'')
+           +'<button class="btn btn-r btn-sm" data-id="'+p.id+'" onclick="dlProva(this.dataset.id)">Excluir</button>'
+           +'</div></div></div></div>';
+        });
+      }
+    });
+    return h;
   }
   if(ab==='hist'){
     const h=[...D.gpt].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
@@ -2948,10 +2972,30 @@ async function gAddCad(cid){const eid=document.getElementById('gm-eid').value;tr
 async function gAddMan(){const eid=document.getElementById('gm-eid').value,nm=document.getElementById('gm-mn').value.trim();if(!nm){toast('Digite o nome','err');return;}try{await dbI('gincana_membros',{equipe_id:eid,nome_manual:nm});await rl('g');closeM('m-gm');rGincana('equipes');toast('Adicionado!','ok');}catch(e){toast('Erro: '+e.message,'err');}}
 function dlGM(id){confirm2('Remover','Remover da equipe?',async()=>{await dbD('gincana_membros',id);D.gm=D.gm.filter(m=>m.id!==id);rGincana('equipes');toast('Removido.','ok');rl('gm');});}
 async function limparEquipe(eqId,nome){confirm2('Limpar equipe','Remover todas as crianças de '+nome+'?',async()=>{try{const mb=D.gm.filter(m=>m.equipe_id===eqId);for(const m of mb)await dbD('gincana_membros',m.id);D.gm=D.gm.filter(m=>m.equipe_id!==eqId);rGincana('equipes');toast('Equipe '+nome+' limpa.','ok');rl('gm');}catch(e){toast('Erro: '+e.message,'err');}});}
-function opPontos(){const sel=document.getElementById('pt-e');sel.innerHTML=D.ge.map(e=>`<option value="${e.id}">${e.emoji} ${e.nome}</option>`).join('');document.getElementById('pt-p').value='';document.getElementById('pt-m').value='';openM('m-pt-g');}
+function opPontos(){
+  const sel = document.getElementById('pt-e');
+  sel.innerHTML = D.ge.map(e=>'<option value="'+e.id+'">'+e.emoji+' '+e.nome+'</option>').join('');
+  const selPv = document.getElementById('pt-pv');
+  selPv.innerHTML = '<option value="">— Lançamento avulso —</option>'
+    + D.gp.map(p=>'<option value="'+p.id+'">'+p.nome+' ('+['Dia 1','Dia 2','Dia 3'][['dia1','dia2','dia3'].indexOf(p.dia)]+')</option>').join('');
+  document.getElementById('pt-p').value='';
+  document.getElementById('pt-m').value='';
+  openM('m-pt-g');
+}
 async function svPontos(){const eid=document.getElementById('pt-e').value,pts=parseInt(document.getElementById('pt-p').value),mot=document.getElementById('pt-m').value.trim(),dia=document.getElementById('pt-d').value;if(!pts||!mot){toast('Preencha pontos e motivo','err');return;}try{await dbI('gincana_pontuacoes',{equipe_id:eid,pontos:pts,motivo:mot,dia});const eq=D.ge.find(e=>e.id===eid);await dbU('gincana_equipes',eid,{pontos:(eq?.pontos||0)+pts});await rl('g');closeM('m-pt-g');rGincana('ranking');toast(`+${pts} pontos!`,'ok');}catch(e){toast('Erro: '+e.message,'err');}}
 async function dlPontuacao(id,eid,pts){confirm2('Remover',`Remover +${pts}pts?`,async()=>{await dbD('gincana_pontuacoes',id);const eq=D.ge.find(e=>e.id===eid);await dbU('gincana_equipes',eid,{pontos:Math.max(0,(eq?.pontos||0)-pts)});await rl('g');rGincana('hist');toast('Removido.','ok');});}
-function opProva(){['pv-n','pv-dc'].forEach(x=>document.getElementById(x).value='');document.getElementById('pv-p1').value=100;document.getElementById('pv-p2').value=70;document.getElementById('pv-p3').value=40;document.getElementById('pv-p4').value=10;openM('m-pv');}
+function opProva(){
+  const els = ['pv-n','pv-dc','pv-pac','pv-max','pv-p1','pv-p2'];
+  els.forEach(x=>{ const el=document.getElementById(x); if(el) el.value=''; });
+  const pac = document.getElementById('pv-pac'); if(pac) pac.value='20';
+  const p1  = document.getElementById('pv-p1');  if(p1)  p1.value='100';
+  const p2  = document.getElementById('pv-p2');  if(p2)  p2.value='70';
+  // Reset tipo para acerto
+  const radios = document.querySelectorAll('input[name="pv-tipo"]');
+  radios.forEach(r=>{ r.checked = r.value==='acerto'; });
+  toggleTipoProva('acerto');
+  openM('m-pv');
+}
 function toggleTipoProva(v){
   document.getElementById('pv-acerto-wrap').style.display = v==='acerto'?'block':'none';
   document.getElementById('pv-coloc-wrap').style.display  = v==='colocacao'?'block':'none';
