@@ -1591,11 +1591,12 @@ async function startApp(){
   document.getElementById('urol').textContent=CU.perfil||'Equipe';
   applyPerfilAccess();
   tickCD(); setInterval(tickCD,60000);
-  // Mostrar dashboard IMEDIATAMENTE com dados vazios
+  // Mostrar loading enquanto carrega dados
+  document.getElementById('pg').innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;gap:12px"><div style="width:32px;height:32px;border:3px solid var(--pale);border-top-color:var(--p);border-radius:50%;animation:spin .7s linear infinite"></div><p style="font-size:.82rem;color:var(--muted)">Carregando dados...</p></div>';
+  // Carregar todos os dados primeiro
+  await loadAll();
+  // Só então renderizar a tela
   go('dashboard');
-  // Carregar dados em background — atualiza quando chegar
-  loadAll().then(()=>{ if(CP==='dashboard') go('dashboard'); });
-  // Verificar se deve mostrar modal de instalar app
   checkPwaOnLogin();
 }
 
