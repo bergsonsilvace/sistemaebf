@@ -1631,8 +1631,8 @@ function canAccess(pg){
   // Fallback por perfil
   const p = CU?.perfil || 'equipe';
   if(p === 'coordenacao') return true;
-  if(p === 'professor') return ['dashboard','criancas','credenciamento','programacao','gincana','checklist','avisos','saude'].includes(pg);
-  return ['dashboard','credenciamento','programacao','gincana','checklist','avisos'].includes(pg);
+  if(p === 'professor') return ['dashboard','criancas','sorteio','credenciamento','programacao','gincana','checklist','avisos','saude'].includes(pg);
+  return ['dashboard','sorteio','credenciamento','programacao','gincana','checklist','avisos'].includes(pg);
 }
 
 // ══════════════════════════════════════════════════════
@@ -1657,8 +1657,8 @@ const MODULOS_PERM = [
   {id:'configuracoes',ico:'⚙️',nome:'Configurações',desc:'Config do sistema'},
 ];
 const PERFIS_PERM = {
-  equipe:      ['dashboard','credenciamento','programacao','gincana','checklist','avisos'],
-  professor:   ['dashboard','criancas','credenciamento','programacao','gincana','checklist','avisos','saude'],
+  equipe:      ['dashboard','sorteio','credenciamento','programacao','gincana','checklist','avisos'],
+  professor:   ['dashboard','criancas','sorteio','credenciamento','programacao','gincana','checklist','avisos','saude'],
   coordenacao: MODULOS_PERM.map(m=>m.id),
 };
 let _permTemp = [...(PERFIS_PERM.equipe)];
