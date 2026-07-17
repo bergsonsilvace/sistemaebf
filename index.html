@@ -1470,6 +1470,13 @@ async function salvarConfig(){
 }
 
 
+// ── KEEP-ALIVE — evita o Supabase pausar ─────────────────────────
+async function keepAlive(){
+  try{ await SB.from('config_ebf').select('chave').limit(1); }catch(e){}
+}
+// Ping a cada 4 horas enquanto o sistema estiver aberto
+setInterval(keepAlive, 4*60*60*1000);
+
 // ── RESTAURAR SESSÃO AUTOMATICAMENTE ────────────────────────────
 (function restaurarSessao(){
   try {
@@ -1714,17 +1721,19 @@ function tickCD(){
 }
 
 async function loadAll(){
-  // Timeout curto — 2s por tabela
-  const safe = p => Promise.race([
-    p.catch(()=>[]),
-    new Promise(r=>setTimeout(()=>r([]),2000))
-  ]);
-  // Timeout geral — 4s para tudo junto
-  const tudo = Promise.all([
-    safe(dbG('criancas_ebf')),safe(dbG('turmas_ebf')),safe(dbG('equipe_ebf')),
-    safe(dbG('presencas_ebf')),safe(dbG('avisos_ebf')),
-    safe(dbG('gincana_equipes')),safe(dbG('gincana_membros')),
-    safe(dbG('gincana_provas')),safe(dbG('gincana_resultados')),safe(dbG('gincana_pontuacoes')),
+  function safe(p){ return p.catch(e=>{ console.warn('loadAll erro:',e); return []; }); }
+
+  const [cr,tr,eq,pr,av,ge,gm,gp,gr,gpt,ins,cl,pt,esc,cred,frec,fdes] = await Promise.all([
+    safe(dbG('criancas_ebf')),
+    safe(dbG('turmas_ebf')),
+    safe(dbG('equipe_ebf')),
+    safe(dbG('presencas_ebf')),
+    safe(dbG('avisos_ebf')),
+    safe(dbG('gincana_equipes')),
+    safe(dbG('gincana_membros')),
+    safe(dbG('gincana_provas')),
+    safe(dbG('gincana_resultados')),
+    safe(dbG('gincana_pontuacoes')),
     safe(dbG('inscricoes_ebf')),
     safe(SB.from('checklist_ebf').select('*').order('fase').order('ordem').then(r=>r.data||[])),
     safe(SB.from('projeto_tarefas').select('*').order('fase').order('ordem').then(r=>r.data||[])),
@@ -1733,22 +1742,16 @@ async function loadAll(){
     safe(SB.from('financeiro_receitas').select('*').order('created_at',{ascending:false}).then(r=>r.data||[])),
     safe(SB.from('financeiro_despesas').select('*').order('created_at',{ascending:false}).then(r=>r.data||[])),
   ]);
-  const resultado = await Promise.race([
-    tudo,
-    new Promise(r=>setTimeout(()=>r(null),4000))
-  ]);
-  const vals = resultado || Array(16).fill([]);
-  const[cr,tr,eq,pr,av,ge,gm,gp,gr,gpt,ins,cl,pt,esc,frec,fdes,cred]=vals;
-  D={
-    cr:cr||[],tr:tr||[],eq:eq||[],pr:pr||[],av:av||[],
-    ge:ge||[],gm:gm||[],gp:gp||[],gr:gr||[],gpt:gpt||[],
-    cl:cl||[],ins:ins||[],pt:pt||[],esc:esc||[],frec:frec||[],fdes:fdes||[],cred:cred||[]
-  };
-  const _nbI=(D.ins||[]).filter(i=>i.status==='pendente').length;
+
+  D={cr:cr||[],tr:tr||[],eq:eq||[],pr:pr||[],av:av||[],
+     ge:ge||[],gm:gm||[],gp:gp||[],gr:gr||[],gpt:gpt||[],
+     cl:cl||[],ins:ins||[],pt:pt||[],esc:esc||[],frec:frec||[],fdes:fdes||[],cred:cred||[]};
+
   const nbI=document.getElementById('nb-i');
   const nbC=document.getElementById('nb-c');
   const nbE=document.getElementById('nb-e');
-  if(nbI) nbI.textContent=_nbI>0?_nbI:'';
+  const pend=(D.ins||[]).filter(i=>i.status==='pendente').length;
+  if(nbI) nbI.textContent=pend>0?pend:'';
   if(nbC) nbC.textContent=(D.cr||[]).length||'';
   if(nbE) nbE.textContent=(D.eq||[]).length||'';
 }
