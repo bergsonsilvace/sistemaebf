@@ -806,16 +806,16 @@ html,body{height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color
       <div class="f"><label>Idade *</label><input id="c-i" type="number" min="4" max="13" placeholder="7"></div>
     </div>
     <div class="fr">
+      <div class="f"><label>Sexo *</label><select id="c-sx"><option value="">Selecionar</option><option value="M">Masculino</option><option value="F">Feminino</option></select></div>
+      <div class="f"><label>1ª vez na EBF?</label><select id="c-pv"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
+    </div>
+    <div class="fr">
       <div class="f"><label>Responsável *</label><input id="c-r" placeholder="Nome"></div>
       <div class="f"><label>WhatsApp</label><input id="c-w" placeholder="(85) 9…"></div>
     </div>
     <div class="fr">
-      <div class="f"><label>Turma</label><select id="c-t"><option value="">Selecionar…</option></select></div>
-      <div class="f"><label>Equipe da Gincana</label><select id="c-eq"><option value="">Sem equipe</option></select></div>
-    </div>
-    <div class="fr">
       <div class="f"><label>Tipo</label><select id="c-tp"><option value="matriculado">Matriculado</option><option value="visitante">Visitante</option></select></div>
-      <div class="f"><label>1ª vez na EBF?</label><select id="c-pv"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
+      <div class="f"><label>Equipe da Gincana</label><select id="c-eq"><option value="">Sem equipe</option></select></div>
     </div>
     <div class="f"><label>Obs / Alergias</label><textarea id="c-o" placeholder="Restrições, alergias…"></textarea></div>
   </div>
@@ -2171,9 +2171,6 @@ function verFicha(cid){
 async function opCrianca(id=''){
   document.getElementById('m-c-t').textContent=id?'Editar Criança':'Nova Criança';
   document.getElementById('c-id').value=id;
-  // Preenche turmas
-  const selT=document.getElementById('c-t');
-  selT.innerHTML='<option value="">Selecionar…</option>'+D.tr.map(t=>`<option value="${t.id}">${t.nome}</option>`).join('');
   // Preenche equipes da gincana
   const selEq=document.getElementById('c-eq');
   selEq.innerHTML='<option value="">Sem equipe</option>'+D.ge.map(e=>`<option value="${e.id}">${e.emoji} ${e.nome}</option>`).join('');
@@ -2183,19 +2180,18 @@ async function opCrianca(id=''){
     if(c){
       document.getElementById('c-n').value=c.nome||'';
       document.getElementById('c-i').value=c.idade||'';
+      document.getElementById('c-sx').value=c.sexo||'';
       document.getElementById('c-r').value=c.responsavel||'';
       document.getElementById('c-w').value=c.telefone||'';
-      document.getElementById('c-t').value=c.turma_id||'';
       document.getElementById('c-tp').value=c.tipo||'matriculado';
       document.getElementById('c-pv').value=c.primeira_vez||'nao';
       document.getElementById('c-o').value=c.observacoes||'';
-      // Verifica se já tem equipe
       const membroAtual=D.gm.find(m=>m.crianca_id===id);
       document.getElementById('c-eq').value=membroAtual?.equipe_id||'';
     }
   } else {
     ['c-n','c-i','c-r','c-w','c-o'].forEach(x=>document.getElementById(x).value='');
-    document.getElementById('c-t').value='';
+    document.getElementById('c-sx').value='';
     document.getElementById('c-eq').value='';
     document.getElementById('c-tp').value='matriculado';
     document.getElementById('c-pv').value='nao';
@@ -2208,9 +2204,9 @@ async function svCrianca(){
   const o={
     nome:document.getElementById('c-n').value.trim(),
     idade:parseInt(document.getElementById('c-i').value)||null,
+    sexo:document.getElementById('c-sx').value||null,
     responsavel:document.getElementById('c-r').value.trim(),
     telefone:document.getElementById('c-w').value.trim(),
-    turma_id:document.getElementById('c-t').value||null,
     tipo:document.getElementById('c-tp').value,
     primeira_vez:document.getElementById('c-pv').value,
     observacoes:document.getElementById('c-o').value.trim()
