@@ -495,7 +495,8 @@ html,body{height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color
       <div class="sb-sec">Principal</div>
       <button class="ni on" data-p="dashboard"       onclick="go('dashboard')">      <span class="ico">📊</span>Dashboard</button>
       <button class="ni" data-p="criancas"           onclick="go('criancas')">       <span class="ico">👦</span>Crianças<span class="nb" id="nb-c">0</span></button>
-            <button class="ni" data-p="sorteio"            onclick="go('sorteio')">        <span class="ico">🎲</span>Sorteio</button>
+            <button class="ni" data-p="visitantes"           onclick="go('visitantes')">       <span class="ico">👥</span>Visitantes</button>
+      <button class="ni" data-p="sorteio"            onclick="go('sorteio')">        <span class="ico">🎲</span>Sorteio</button>
       <button class="ni" data-p="credenciamento"     onclick="go('credenciamento')"> <span class="ico">🎫</span>Credenciamento</button>
       <button class="ni" data-p="inscricoes"         onclick="go('inscricoes')">     <span class="ico">📝</span>Inscrições<span class="nb" id="nb-i">0</span></button>
       <div class="sb-sec">Evento</div>
@@ -964,7 +965,7 @@ html,body{height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color
   <div class="mh"><h3>Lançar Pontos</h3><button class="mc" onclick="closeM('m-pt-g')">✕</button></div>
   <div class="mb">
     <div class="f"><label>Equipe *</label><select id="pt-e" style="width:100%;padding:10px 12px;border:1px solid rgba(12,10,24,.12);border-radius:var(--rs);font-family:'Outfit';outline:none;background:var(--bg);color:var(--ink)"></select></div>
-    <div class="f"><label>Prova / Atividade</label><select id="pt-pv" style="width:100%;padding:10px 12px;border:1px solid rgba(12,10,24,.12);border-radius:var(--rs);font-family:'Outfit';outline:none;background:var(--bg);color:var(--ink)"></select></div>
+    <div class="f"><label>Prova / Atividade</label><select id="pt-pv" onchange="preencherProva()" style="width:100%;padding:10px 12px;border:1px solid rgba(12,10,24,.12);border-radius:var(--rs);font-family:'Outfit';outline:none;background:var(--bg);color:var(--ink)"></select></div>
     <div class="fr">
       <div class="f"><label>Pontos *</label><input id="pt-p" type="number" placeholder="100"></div>
       <div class="f"><label>Dia</label>
@@ -1189,6 +1190,46 @@ html,body{height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color
     </div>
   </div>
 </div>
+
+<!-- Modal Visitante -->
+<div class="mw" id="m-vis"><div class="modal">
+  <div class="mh"><h3 id="m-vis-t">Novo Visitante</h3><button class="mc" onclick="closeM('m-vis')">✕</button></div>
+  <div class="mb">
+    <input type="hidden" id="vis-id">
+    <div class="f"><label>Nome completo *</label><input id="vis-nome" placeholder="Nome completo"></div>
+    <div class="fr">
+      <div class="f"><label>Tipo *</label>
+        <select id="vis-tipo" style="width:100%;padding:10px 12px;border:1px solid rgba(12,10,24,.12);border-radius:var(--rs);font-family:'Outfit';outline:none;background:var(--bg);color:var(--ink)">
+          <option value="adulto">Adulto</option>
+          <option value="crianca">Criança</option>
+        </select>
+      </div>
+      <div class="f"><label>Sexo</label>
+        <select id="vis-sexo" style="width:100%;padding:10px 12px;border:1px solid rgba(12,10,24,.12);border-radius:var(--rs);font-family:'Outfit';outline:none;background:var(--bg);color:var(--ink)">
+          <option value="">Não informar</option>
+          <option value="M">Masculino</option>
+          <option value="F">Feminino</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr">
+      <div class="f"><label>Dia de visita *</label>
+        <select id="vis-dia" style="width:100%;padding:10px 12px;border:1px solid rgba(12,10,24,.12);border-radius:var(--rs);font-family:'Outfit';outline:none;background:var(--bg);color:var(--ink)">
+          <option value="dia1">Dia 1 — 17/jul</option>
+          <option value="dia2">Dia 2 — 18/jul</option>
+          <option value="dia3">Dia 3 — 19/jul</option>
+        </select>
+      </div>
+      <div class="f"><label>Telefone</label><input id="vis-tel" type="tel" placeholder="(85) 9…"></div>
+    </div>
+    <div class="f"><label>Como conheceu o evento?</label><input id="vis-como" placeholder="Ex: amigo, redes sociais…"></div>
+    <div class="f"><label>Observações</label><textarea id="vis-obs" placeholder="Alguma informação adicional?"></textarea></div>
+  </div>
+  <div class="mf">
+    <button class="btn btn-gh" onclick="closeM('m-vis')">Cancelar</button>
+    <button class="btn btn-p" onclick="svVisitante()">Salvar</button>
+  </div>
+</div></div>
 
 <!-- Modal Editar Inscrição -->
 <div class="mw" id="m-edit-ins"><div class="modal" style="max-width:480px">
@@ -1654,8 +1695,8 @@ function canAccess(pg){
   // Fallback por perfil
   const p = CU?.perfil || 'equipe';
   if(p === 'coordenacao') return true;
-  if(p === 'professor') return ['dashboard','criancas','sorteio','credenciamento','programacao','gincana','checklist','avisos','saude'].includes(pg);
-  return ['dashboard','sorteio','credenciamento','programacao','gincana','checklist','avisos'].includes(pg);
+  if(p === 'professor') return ['dashboard','criancas','visitantes','sorteio','credenciamento','programacao','gincana','checklist','avisos','saude'].includes(pg);
+  return ['dashboard','visitantes','sorteio','credenciamento','programacao','gincana','checklist','avisos'].includes(pg);
 }
 
 // ══════════════════════════════════════════════════════
@@ -1664,6 +1705,7 @@ function canAccess(pg){
 const MODULOS_PERM = [
   {id:'dashboard',ico:'📊',nome:'Dashboard',desc:'Visão geral e countdown'},
   {id:'criancas',ico:'👦',nome:'Crianças',desc:'Cadastro e ficha das crianças'},
+  {id:'visitantes',ico:'👥',nome:'Visitantes',desc:'Registro de visitantes'},
   {id:'sorteio',ico:'🎲',nome:'Sorteio',desc:'Distribuição automática nas equipes'},
   {id:'credenciamento',ico:'🎫',nome:'Credenciamento',desc:'Entrada e check-in'},
   {id:'inscricoes',ico:'📝',nome:'Inscrições',desc:'Inscrições e passaportes'},
@@ -1681,8 +1723,8 @@ const MODULOS_PERM = [
   {id:'configuracoes',ico:'⚙️',nome:'Configurações',desc:'Config do sistema'},
 ];
 const PERFIS_PERM = {
-  equipe:      ['dashboard','sorteio','credenciamento','programacao','gincana','checklist','avisos'],
-  professor:   ['dashboard','criancas','sorteio','credenciamento','programacao','gincana','checklist','avisos','saude'],
+  equipe:      ['dashboard','visitantes','sorteio','credenciamento','programacao','gincana','checklist','avisos'],
+  professor:   ['dashboard','criancas','visitantes','sorteio','credenciamento','programacao','gincana','checklist','avisos','saude'],
   coordenacao: MODULOS_PERM.map(m=>m.id),
 };
 let _permTemp = [...(PERFIS_PERM.equipe)];
@@ -1753,12 +1795,8 @@ function tickCD(){
 }
 
 async function loadAll(){
-  const safe = p => Promise.race([
-    p.catch(()=>[]),
-    new Promise(r=>setTimeout(()=>r([]),15000))
-  ]);
-
-  const [cr,tr,eq,pr,av,ge,gm,gp,gr,gpt,ins,cl,pt,esc,cred,frec,fdes] = await Promise.all([
+  function safe(p){ return p.catch(e=>{ console.warn(e); return []; }); }
+  const [cr,tr,eq,pr,av,ge,gm,gp,gr,gpt,ins,cl,pt,esc,cred,frec,fdes,vis] = await Promise.all([
     safe(dbG('criancas_ebf')),
     safe(Promise.resolve({data:[]})),
     safe(dbG('equipe_ebf')),
@@ -1776,12 +1814,11 @@ async function loadAll(){
     safe(SB.from('credenciamento_ebf').select('*').then(r=>r.data||[])),
     safe(SB.from('financeiro_receitas').select('*').order('created_at',{ascending:false}).then(r=>r.data||[])),
     safe(SB.from('financeiro_despesas').select('*').order('created_at',{ascending:false}).then(r=>r.data||[])),
+    safe(dbG('visitantes_ebf')),
   ]);
-
   D={cr:cr||[],tr:[],eq:eq||[],pr:pr||[],av:av||[],
      ge:ge||[],gm:gm||[],gp:gp||[],gr:gr||[],gpt:gpt||[],
-     cl:cl||[],ins:ins||[],pt:pt||[],esc:esc||[],frec:frec||[],fdes:fdes||[],cred:cred||[]};
-
+     cl:cl||[],ins:ins||[],pt:pt||[],esc:esc||[],frec:frec||[],fdes:fdes||[],cred:cred||[],vis:vis||[]};
   const nbI=document.getElementById('nb-i');
   const nbC=document.getElementById('nb-c');
   const nbE=document.getElementById('nb-e');
@@ -1799,6 +1836,7 @@ async function rl(...ks){
     if(k==='eq'){D.eq=await dbG('equipe_ebf');const nbE=document.getElementById('nb-e');if(nbE)nbE.textContent=D.eq.length;}
     if(k==='pr')D.pr=await dbG('presencas_ebf');
     if(k==='cred')D.cred=await dbG('credenciamento_ebf');
+    if(k==='vis')D.vis=await dbG('visitantes_ebf');
     if(k==='av')D.av=await dbG('avisos_ebf');
     if(k==='cl'){const r=await SB.from('checklist_ebf').select('*').order('fase').order('ordem');D.cl=r.data||[];}
     if(k==='pt'){const r=await SB.from('projeto_tarefas').select('*').order('fase').order('ordem');D.pt=r.data||[];}
@@ -1829,6 +1867,7 @@ const META={
   dashboard:['Dashboard','Visão geral do evento'],
   criancas:['Crianças','Cadastro de participantes'],
   turmas:['Turmas','Organização das turmas'],
+  visitantes:['Visitantes','Registro de visitantes do evento'],
   sorteio:['Sorteio de Equipes','Distribuição automática das crianças'],
   credenciamento:['Credenciamento','Recepção do evento'],
   programacao:['Programação','Cronograma dos 3 dias'],
@@ -1876,7 +1915,8 @@ function go(p){
   const fn = {
     dashboard:rDash, criancas:rCriancas,  inscricoes:rInscricoes, configuracoes:rConfig,
     saude:rSaude, estatisticas:rEstatisticas, projeto:rProjeto,
-    escala:rEscala, financeiro:rFinanceiro, sorteio:rSorteio,
+    escala:rEscala, financeiro:rFinanceiro, visitantes:rVisitantes,
+    sorteio:rSorteio,
     credenciamento:rCred,
     programacao:rProg, gincana:rGincana, checklist:rChecklist,
     avisos:rAvisos, equipe:rEquipe, relatorios:rRel
@@ -2369,6 +2409,93 @@ function mkTodos(s){D.cr.filter(c=>c.turma_id===pCfg.turma).forEach(c=>pBuf[c.id
 async function svPres(){if(!pCfg.turma){toast('Selecione uma turma','err');return;}const cr=D.cr.filter(c=>c.turma_id===pCfg.turma);const pr=Object.values(pBuf).filter(v=>v==='presente').length,au=Object.values(pBuf).filter(v=>v==='ausente').length,vi=Object.values(pBuf).filter(v=>v==='visitante').length;try{await dbUps('presencas_ebf',{data:pCfg.dia,turma_id:pCfg.turma,dados:pBuf,presentes:pr,ausentes:au,visitantes:vi,total_criancas:cr.length,visitantes_nomes:document.getElementById('pr-vn')?.value||'',obs:document.getElementById('pr-ob')?.value||''},'data,turma_id');await rl('pr');toast('Chamada salva!','ok');}catch(e){toast('Erro: '+e.message,'err');}}
 
 // ── CREDENCIAMENTO ───────────────────────────
+function rVisitantes(){
+  D.vis=D.vis||[];
+  const total=D.vis.length;
+  const adultos=D.vis.filter(v=>v.tipo==='adulto').length;
+  const criancas=D.vis.filter(v=>v.tipo==='crianca').length;
+  const d1=D.vis.filter(v=>v.dia==='dia1').length;
+  const d2=D.vis.filter(v=>v.dia==='dia2').length;
+  const d3=D.vis.filter(v=>v.dia==='dia3').length;
+  let h='';
+  h+='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px">';
+  h+='<div class="sc"><div class="l">Total</div><div class="v" style="font-size:1.4rem">'+total+'</div></div>';
+  h+='<div class="sc"><div class="l">Adultos</div><div class="v" style="font-size:1.4rem;color:#1e40af">'+adultos+'</div></div>';
+  h+='<div class="sc"><div class="l">Crianças</div><div class="v" style="font-size:1.4rem;color:#be185d">'+criancas+'</div></div>';
+  h+='<div class="sc"><div class="l">Por dia</div><div style="font-size:.75rem;color:var(--mid);margin-top:3px">D1:'+d1+' · D2:'+d2+' · D3:'+d3+'</div></div>';
+  h+='</div>';
+  h+='<button class="btn btn-p btn-full" style="margin-bottom:12px" onclick="opVisitante()">+ Novo Visitante</button>';
+  if(!D.vis.length){
+    h+='<div class="empty"><div class="e">👥</div><p>Nenhum visitante registrado.</p></div>';
+  } else {
+    [['dia1','Dia 1 — 17/jul'],['dia2','Dia 2 — 18/jul'],['dia3','Dia 3 — 19/jul']].forEach(([d,lb])=>{
+      const lista=D.vis.filter(v=>v.dia===d);
+      if(!lista.length) return;
+      h+='<div class="sec-lbl" style="margin-bottom:6px">'+lb+' ('+lista.length+')</div>';
+      lista.forEach(v=>{
+        const tc=v.tipo==='adulto'?'#1e40af':'#be185d';
+        const bg=v.tipo==='adulto'?'#dbeafe':'#fce7f3';
+        const sx=v.sexo==='M'?'♂':v.sexo==='F'?'♀':'';
+        h+='<div style="display:flex;align-items:center;gap:10px;padding:10px 13px;background:var(--surf);border:1px solid rgba(12,10,24,.07);border-radius:9px;margin-bottom:6px">'
+          +'<div style="width:34px;height:34px;border-radius:9px;background:'+tc+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0">'+(v.nome||'?')[0].toUpperCase()+'</div>'
+          +'<div style="flex:1;min-width:0">'
+          +'<div style="font-weight:600;font-size:.85rem">'+v.nome+(sx?' <span style="color:var(--muted);font-size:.75rem">'+sx+'</span>':'')+'</div>'
+          +'<div style="display:flex;gap:5px;margin-top:3px">'
+          +'<span style="background:'+bg+';color:'+tc+';padding:1px 7px;border-radius:4px;font-size:.65rem;font-weight:700">'+(v.tipo==='adulto'?'Adulto':'Criança')+'</span>'
+          +(v.como_conheceu?'<span style="background:var(--pale);color:var(--mid);padding:1px 7px;border-radius:4px;font-size:.65rem">'+v.como_conheceu+'</span>':'')
+          +'</div></div>'
+          +'<div style="display:flex;gap:5px;flex-shrink:0">'
+          +(v.telefone?'<a href="https://wa.me/55'+v.telefone.replace(/\D/g,'')+'" target="_blank" class="btn btn-g btn-sm">📲</a>':'')
+          +'<button class="btn btn-r btn-sm" data-id="'+v.id+'" onclick="dlVisitante(this.dataset.id)">✕</button>'
+          +'</div></div>';
+      });
+    });
+  }
+  document.getElementById('pg').innerHTML=h;
+}
+
+function opVisitante(){
+  ['vis-nome','vis-tel','vis-como','vis-obs'].forEach(x=>{const el=document.getElementById(x);if(el)el.value='';});
+  document.getElementById('vis-tipo').value='adulto';
+  document.getElementById('vis-sexo').value='';
+  document.getElementById('vis-dia').value='dia1';
+  document.getElementById('vis-id').value='';
+  document.getElementById('m-vis-t').textContent='Novo Visitante';
+  openM('m-vis');
+}
+
+async function svVisitante(){
+  const nome=document.getElementById('vis-nome').value.trim();
+  if(!nome){toast('Informe o nome','err');return;}
+  const o={
+    nome,
+    tipo:document.getElementById('vis-tipo').value,
+    sexo:document.getElementById('vis-sexo').value||null,
+    dia:document.getElementById('vis-dia').value,
+    telefone:document.getElementById('vis-tel').value.trim()||null,
+    como_conheceu:document.getElementById('vis-como').value.trim()||null,
+    observacoes:document.getElementById('vis-obs').value.trim()||null,
+  };
+  try{
+    await dbI('visitantes_ebf',o);
+    await rl('vis');
+    closeM('m-vis');
+    rVisitantes();
+    toast('Visitante registrado!','ok');
+  }catch(e){toast('Erro: '+e.message,'err');}
+}
+
+async function dlVisitante(id){
+  confirm2('Remover visitante','Remover este visitante?',async()=>{
+    try{
+      await dbD('visitantes_ebf',id);
+      await rl('vis');
+      rVisitantes();
+      toast('Removido.','ok');
+    }catch(e){toast('Erro: '+e.message,'err');}
+  });
+}
+
 function rSorteio(){
   D.cr=D.cr||[]; D.ge=D.ge||[]; D.gm=D.gm||[];
 
@@ -2690,77 +2817,93 @@ function rCred(){
   html += '<div style="position:relative;margin-bottom:12px">'
     +'<i class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--muted)" aria-hidden="true"></i>'
     +'<input id="cred-busca" type="text" placeholder="Buscar criança por nome..." value="'+((window._credBusca)||'')+'"'
-    +' oninput="window._credBusca=this.value;rCred()"'
+    +' oninput="window._credBusca=this.value;rCredLista()"'
     +' style="width:100%;padding:10px 10px 10px 34px;border:1px solid rgba(12,10,24,.12);border-radius:9px;font-family:\'Outfit\';font-size:.86rem;outline:none;background:var(--bg);color:var(--ink);box-sizing:border-box">'
     +'</div>';
 
   // ── Lista de crianças ────────────────────────
-  if(!lista.length){
-    html += '<div class="empty"><div class="e">🔍</div><p>Nenhuma criança encontrada.</p></div>';
-  } else {
-    lista.forEach(cr => {
-      const presente = presIds.has(cr.id);
-      const presObj  = presencasDia.find(p=>p.crianca_id===cr.id);
-      const horario  = presObj?.hora_entrada || presObj?.created_at?.substring(11,16) || '';
-      const turma    = getNomeTurma(cr.turma_id);
-      const corT     = getCorTurma(cr.turma_id);
-      const equipe   = getEquipe(cr.id);
-      const alertas  = alertaSaude(cr);
-      const ini      = (cr.nome||'?').split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase();
-
-      html += '<div style="display:flex;align-items:flex-start;gap:10px;padding:11px 13px;margin-bottom:7px;'
-        +'background:'+(presente?'#f0fdf4':'var(--surf)')+';'
-        +'border:1px solid '+(presente?'#86efac':'rgba(12,10,24,.08)')+';'
-        +'border-radius:10px;transition:.15s">';
-
-      // Avatar
-      html += '<div style="width:36px;height:36px;border-radius:10px;background:'+(presente?'#15803d':'#534AB7')+';'
-        +'display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;'
-        +'color:'+(presente?'#f0fdf4':'#EEEDFE')+';flex-shrink:0">'+ini+'</div>';
-
-      // Info
-      html += '<div style="flex:1;min-width:0">';
-      html += '<div style="font-weight:600;font-size:.85rem;color:var(--ink)">'+cr.nome+'</div>';
-
-      // Turma + equipe
-      html += '<div style="display:flex;gap:5px;margin-top:3px;flex-wrap:wrap">';
-      if(cr.turma_id){
-        html += '<span style="background:'+corT+'20;color:'+corT+';padding:1px 7px;border-radius:4px;font-size:.63rem;font-weight:700">'+turma+'</span>';
-      }
-      if(equipe){
-        html += '<span style="background:'+equipe.cor+'20;color:'+equipe.cor+';padding:1px 7px;border-radius:4px;font-size:.63rem;font-weight:600">'+equipe.emoji+' '+equipe.nome+'</span>';
-      }
-      html += '</div>';
-
-      // Alertas de saúde
-      if(alertas.length){
-        html += '<div style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap">';
-        alertas.forEach(a => {
-          html += '<span style="display:inline-flex;align-items:center;gap:3px;background:'+a.bg
-            +';color:'+a.tc+';padding:2px 7px;border-radius:4px;font-size:.62rem;font-weight:600">'
-            +'<i class="ti '+a.ico+'" style="font-size:11px" aria-hidden="true"></i> '+a.txt+'</span>';
-        });
-        html += '</div>';
-      }
-
-      html += '</div>';
-
-      // Botão ou horário
-      html += '<div style="flex-shrink:0;text-align:right">';
-      if(presente){
-        html += '<div style="display:flex;align-items:center;gap:4px;color:#15803d;font-size:.72rem;font-weight:600">'
-          +'<i class="ti ti-check" style="font-size:15px" aria-hidden="true"></i>'+(horario||'')+'</div>';
-        html += '<button onclick="desfazerCheckin(\''+cr.id+'\')" style="margin-top:4px;background:none;border:1px solid #86efac;color:#15803d;border-radius:5px;padding:3px 8px;font-size:.62rem;cursor:pointer;font-family:\'Outfit\'">Desfazer</button>';
-      } else {
-        html += '<button onclick="fazerCheckin(\''+cr.id+'\')" style="background:#534AB7;border:none;color:#EEEDFE;border-radius:7px;padding:7px 11px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:\'Outfit\'">Check-in</button>';
-      }
-      html += '</div>';
-
-      html += '</div>';
-    });
-  }
+  html += '<div id="cred-lista"></div>';
 
   document.getElementById('pg').innerHTML = (window._offlineBanner||'') + html;
+
+  // Renderizar lista separadamente para não perder foco no input
+  rCredLista();
+
+  // Manter foco no input se estava buscando
+  if(window._credBusca){
+    const inp = document.getElementById('cred-busca');
+    if(inp){ inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+  }
+}
+
+function rCredLista(){
+  const presencasDia = (D.cred||[]).filter(p => p.dia === (window._credDia||'dia1'));
+  const presIds = new Set(presencasDia.map(p => p.crianca_id));
+  const busca = (window._credBusca||'').toLowerCase().trim();
+  const lista = (D.cr||[]).filter(cr => !busca || (cr.nome||'').toLowerCase().includes(busca));
+
+  function getNomeTurma(id){ return (D.tr||[]).find(t=>t.id===id)?.nome||'—'; }
+  function getCorTurma(id){ return (D.tr||[]).find(t=>t.id===id)?.cor||'#534AB7'; }
+  function getEquipe(cid){
+    const m=(D.gm||[]).find(x=>x.crianca_id===cid);
+    if(!m) return null;
+    return (D.ge||[]).find(e=>e.id===m.equipe_id);
+  }
+  function alertaSaude(cr){
+    const itens=[];
+    if(cr.tem_alergia==='sim') itens.push({ico:'ti-alert-triangle',txt:cr.alergias||'Alergia',bg:'#FCEBEB',tc:'#791F1F'});
+    if(cr.tem_restricao==='sim') itens.push({ico:'ti-medical-cross',txt:cr.restricoes||'Restrição',bg:'#FAEEDA',tc:'#633806'});
+    if(cr.medicamentos) itens.push({ico:'ti-pill',txt:'Medicamento',bg:'#E6F1FB',tc:'#0C447C'});
+    return itens;
+  }
+
+  const el = document.getElementById('cred-lista');
+  if(!el) return;
+
+  if(!lista.length){
+    el.innerHTML='<div class="empty"><div class="e">🔍</div><p>Nenhuma criança encontrada.</p></div>';
+    return;
+  }
+
+  let h='';
+  lista.forEach(cr=>{
+    const presente=presIds.has(cr.id);
+    const presObj=presencasDia.find(p=>p.crianca_id===cr.id);
+    const horario=presObj?.hora_entrada||presObj?.created_at?.substring(11,16)||'';
+    const turma=getNomeTurma(cr.turma_id);
+    const corT=getCorTurma(cr.turma_id);
+    const equipe=getEquipe(cr.id);
+    const alertas=alertaSaude(cr);
+    const ini=(cr.nome||'?').split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase();
+    h+='<div style="display:flex;align-items:flex-start;gap:10px;padding:11px 13px;margin-bottom:7px;'
+      +'background:'+(presente?'#f0fdf4':'var(--surf)')+';'
+      +'border:1px solid '+(presente?'#86efac':'rgba(12,10,24,.08)')+';'
+      +'border-radius:10px">';
+    h+='<div style="width:36px;height:36px;border-radius:10px;background:'+(presente?'#15803d':'#534AB7')+';'
+      +'display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;'
+      +'color:'+(presente?'#f0fdf4':'#EEEDFE')+';flex-shrink:0">'+ini+'</div>';
+    h+='<div style="flex:1;min-width:0">';
+    h+='<div style="font-weight:600;font-size:.85rem;color:var(--ink)">'+cr.nome+'</div>';
+    h+='<div style="display:flex;gap:5px;margin-top:3px;flex-wrap:wrap">';
+    if(cr.turma_id) h+='<span style="background:'+corT+'20;color:'+corT+';padding:1px 7px;border-radius:4px;font-size:.63rem;font-weight:700">'+turma+'</span>';
+    if(equipe) h+='<span style="background:'+equipe.cor+'20;color:'+equipe.cor+';padding:1px 7px;border-radius:4px;font-size:.63rem;font-weight:600">'+equipe.emoji+' '+equipe.nome+'</span>';
+    h+='</div>';
+    if(alertas.length){
+      h+='<div style="display:flex;gap:4px;margin-top:5px;flex-wrap:wrap">';
+      alertas.forEach(a=>{h+='<span style="display:inline-flex;align-items:center;gap:3px;background:'+a.bg+';color:'+a.tc+';padding:2px 7px;border-radius:4px;font-size:.62rem;font-weight:600"><i class="ti '+a.ico+'" style="font-size:11px" aria-hidden="true"></i> '+a.txt+'</span>';});
+      h+='</div>';
+    }
+    h+='</div>';
+    h+='<div style="flex-shrink:0;text-align:right">';
+    if(presente){
+      h+='<div style="display:flex;align-items:center;gap:4px;color:#15803d;font-size:.72rem;font-weight:600"><i class="ti ti-check" style="font-size:15px" aria-hidden="true"></i>'+(horario||'')+'</div>';
+      h+='<button data-id="'+cr.id+'" onclick="desfazerCheckin(this.dataset.id)" style="margin-top:4px;background:none;border:1px solid #86efac;color:#15803d;border-radius:5px;padding:3px 8px;font-size:.62rem;cursor:pointer;font-family:\'Outfit\'">Desfazer</button>';
+    } else {
+      h+='<button data-id="'+cr.id+'" onclick="fazerCheckin(this.dataset.id)" style="background:#534AB7;border:none;color:#EEEDFE;border-radius:7px;padding:7px 11px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:\'Outfit\'">Check-in</button>';
+    }
+    h+='</div></div>';
+  });
+  el.innerHTML = h;
 }
 
 function selCredDia(dia){
@@ -2772,22 +2915,27 @@ async function fazerCheckin(criancaId){
   const dia = window._credDia || 'dia1';
   D.cred = D.cred||[];
   if(D.cred.find(p=>p.crianca_id===criancaId&&p.dia===dia)){
-    toast('Criança já registrada neste dia','err'); return;
+    toast('Check-in já feito!','err'); rCred(); return;
   }
   const cr = D.cr.find(x=>x.id===criancaId);
   const hora = new Date().toTimeString().substring(0,5);
   try{
-    await dbI('credenciamento_ebf',{
+    const reg = await dbI('credenciamento_ebf',{
       crianca_id:   criancaId,
       crianca_nome: cr?.nome||null,
       dia,
       hora_entrada: hora,
     });
-    await rl('cred');
+    if(reg) D.cred.push(reg);
     rCred();
     toast('✓ '+(cr?.nome||'Criança')+' — check-in '+hora,'ok');
-  }catch(e){ toast('Erro: '+e.message,'err'); }
+  }catch(e){
+    if(e.message&&e.message.includes('duplicate')){
+      await rl('cred'); rCred(); toast('Check-in já registrado!','err');
+    } else { toast('Erro: '+e.message,'err'); }
+  }
 }
+
 
 async function desfazerCheckin(criancaId){
   const dia = window._credDia || 'dia1';
@@ -2950,6 +3098,7 @@ function gContent(ab){
            +'<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0">'
            +'<span class="badge '+(fin?'bg':'by')+'">'+(fin?'Finalizada':'Pendente')+'</span>'
            +(!fin?'<button class="btn btn-g btn-sm" data-id="'+p.id+'" data-nm="'+encodeURIComponent(p.nome)+'" onclick="opRes(this.dataset.id,decodeURIComponent(this.dataset.nm))">Resultado</button>':'')
+           +'<button class="btn btn-gh btn-sm" data-id="'+p.id+'" onclick="editarProva(this.dataset.id)">Editar</button>'
            +'<button class="btn btn-r btn-sm" data-id="'+p.id+'" onclick="dlProva(this.dataset.id)">Excluir</button>'
            +'</div></div></div></div>';
         });
@@ -2982,8 +3131,58 @@ function opPontos(){
   document.getElementById('pt-m').value='';
   openM('m-pt-g');
 }
-async function svPontos(){const eid=document.getElementById('pt-e').value,pts=parseInt(document.getElementById('pt-p').value),mot=document.getElementById('pt-m').value.trim(),dia=document.getElementById('pt-d').value;if(!pts||!mot){toast('Preencha pontos e motivo','err');return;}try{await dbI('gincana_pontuacoes',{equipe_id:eid,pontos:pts,motivo:mot,dia});const eq=D.ge.find(e=>e.id===eid);await dbU('gincana_equipes',eid,{pontos:(eq?.pontos||0)+pts});await rl('g');closeM('m-pt-g');rGincana('ranking');toast(`+${pts} pontos!`,'ok');}catch(e){toast('Erro: '+e.message,'err');}}
+function preencherProva(){
+  const pvId = document.getElementById('pt-pv').value;
+  if(!pvId) return;
+  const pv = D.gp.find(p=>p.id===pvId);
+  if(!pv) return;
+  document.getElementById('pt-m').value = pv.nome;
+  document.getElementById('pt-d').value = pv.dia||'dia1';
+  // Preencher pontos com o valor configurado na prova
+  const ptEl = document.getElementById('pt-p');
+  if(ptEl) ptEl.value = pv.pontos_1||20;
+}
+
+async function svPontos(){
+  const eid  = document.getElementById('pt-e').value;
+  const pvId = document.getElementById('pt-pv').value;
+  const pts  = parseInt(document.getElementById('pt-p').value);
+  const mot  = document.getElementById('pt-m').value.trim();
+  const dia  = document.getElementById('pt-d').value;
+  if(!pts||!mot){ toast('Preencha pontos e motivo','err'); return; }
+  try{
+    await dbI('gincana_pontuacoes',{equipe_id:eid, pontos:pts, motivo:mot, dia});
+    const eq=D.ge.find(e=>e.id===eid);
+    await dbU('gincana_equipes',eid,{pontos:(eq?.pontos||0)+pts});
+    await rl('g');
+    closeM('m-pt-g');
+    rGincana('ranking');
+    toast('+'+pts+' pontos!','ok');
+  }catch(e){ toast('Erro: '+e.message,'err'); }
+}
 async function dlPontuacao(id,eid,pts){confirm2('Remover',`Remover +${pts}pts?`,async()=>{await dbD('gincana_pontuacoes',id);const eq=D.ge.find(e=>e.id===eid);await dbU('gincana_equipes',eid,{pontos:Math.max(0,(eq?.pontos||0)-pts)});await rl('g');rGincana('hist');toast('Removido.','ok');});}
+function editarProva(id){
+  const p = D.gp.find(x=>x.id===id);
+  if(!p) return;
+  // Preencher campos do modal
+  document.getElementById('pv-n').value  = p.nome||'';
+  document.getElementById('pv-dc').value = p.descricao||'';
+  document.getElementById('pv-d').value  = p.dia||'dia1';
+  const tipo = p.tipo_pontuacao||'acerto';
+  document.querySelectorAll('input[name="pv-tipo"]').forEach(r=>{ r.checked = r.value===tipo; });
+  toggleTipoProva(tipo);
+  if(tipo==='acerto'){
+    const pac = document.getElementById('pv-pac'); if(pac) pac.value = p.pontos_1||20;
+  } else {
+    const p1 = document.getElementById('pv-p1'); if(p1) p1.value = p.pontos_1||100;
+    const p2 = document.getElementById('pv-p2'); if(p2) p2.value = p.pontos_2||70;
+  }
+  // Guardar id para o svProva saber que é edição
+  document.getElementById('pv-n').dataset.editId = id;
+  openM('m-pv');
+}
+
+
 function opProva(){
   const els = ['pv-n','pv-dc','pv-pac','pv-max','pv-p1','pv-p2'];
   els.forEach(x=>{ const el=document.getElementById(x); if(el) el.value=''; });
@@ -3004,6 +3203,7 @@ function toggleTipoProva(v){
 async function svProva(){
   const nome = document.getElementById('pv-n').value.trim();
   if(!nome){ toast('Nome obrigatório','err'); return; }
+  const editId = document.getElementById('pv-n').dataset.editId||'';
   const tipo = document.querySelector('input[name="pv-tipo"]:checked')?.value || 'acerto';
   const o = {
     nome,
@@ -3016,16 +3216,21 @@ async function svProva(){
     pontos_2: tipo==='acerto'
       ? parseInt(document.getElementById('pv-pac').value)||20
       : parseInt(document.getElementById('pv-p2').value)||70,
-    pontos_3: 0,
-    pontos_4: 0,
+    pontos_3: 0, pontos_4: 0,
     status: 'pendente',
   };
   try{
-    await dbI('gincana_provas', o);
+    if(editId){
+      await dbU('gincana_provas', editId, o);
+      toast('Prova atualizada!','ok');
+    } else {
+      await dbI('gincana_provas', o);
+      toast('Prova criada!','ok');
+    }
+    document.getElementById('pv-n').dataset.editId = '';
     await rl('g');
     closeM('m-pv');
     rGincana('provas');
-    toast('Prova criada!','ok');
   }catch(e){ toast('Erro: '+e.message,'err'); }
 }
 function dlProva(id){confirm2('Excluir','Remover esta prova?',async()=>{await dbD('gincana_provas',id);await rl('g');rGincana('provas');toast('Removida.','ok');});}
